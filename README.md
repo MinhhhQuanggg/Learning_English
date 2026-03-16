@@ -6,4 +6,5 @@ Cách chạy:
 -terminal 2: cd frontend => npm run dev
 - ở terminal 2 phần chạy fronend sẽ có hiển thị link để chạy loaclhost trên web
 - tải mongodb về kết nối database
-
+EMAIL_USER=qminh0733@gmail.com
+EMAIL_PASS=rhyh ifba jmbq hpfb
