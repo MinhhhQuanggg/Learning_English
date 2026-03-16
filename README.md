@@ -5,3 +5,5 @@ Cách chạy:
 -terminal 1: cd backend => npm run dev
 -terminal 2: cd frontend => npm run dev
 - ở terminal 2 phần chạy fronend sẽ có hiển thị link để chạy loaclhost trên web
+- tải mongodb về kết nối database
+
