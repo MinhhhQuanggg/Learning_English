@@ -8,3 +8,7 @@ Cách chạy:
 - tải mongodb về kết nối database
 EMAIL_USER=qminh0733@gmail.com
 EMAIL_PASS=rhyh ifba jmbq hpfb
+#
+PORT=5000
+MONGODB_URI=mongodb://127.0.0.1:27017/learning_english
+JWT_SECRET=super_secret_jwt_key_learning_english
