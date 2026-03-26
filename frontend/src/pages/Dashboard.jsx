@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Trophy, Flame, Play, Clock, ChevronRight, BookOpen, PlayCircle, User } from 'lucide-react';
+import { Zap, Trophy, Flame, Play, Clock, ChevronRight, BookOpen, PlayCircle, User, X, CheckCircle2 } from 'lucide-react';
 import api from '../api/axios';
 import mascotImg from '../assets/mascot.png';
 import oppIcon from '../assets/opportunity.png';
@@ -10,9 +10,26 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [nextLesson, setNextLesson] = useState(null);
     const [leaderboard, setLeaderboard] = useState([]);
+    const [leaderboardTab, setLeaderboardTab] = useState(user.level || 'Thấp');
     const [updatingLevel, setUpdatingLevel] = useState(false);
     const [localLevel, setLocalLevel] = useState(user.level || 'Thấp');
+    // Modal 12: Danh sách bài đã hoàn thành
+    const [showCompletedModal, setShowCompletedModal] = useState(false);
     const navigate = useNavigate();
+
+    const fetchLeaderboardData = async (level) => {
+        try {
+            const leaderboardRes = await api.get(`/auth/leaderboard?level=${level}`);
+            setLeaderboard(leaderboardRes.data.data);
+        } catch (err) {
+            console.error('Không thể lấy bảng xếp hạng', err);
+        }
+    };
+
+    const handleLeaderboardTab = (lvl) => {
+        setLeaderboardTab(lvl);
+        fetchLeaderboardData(lvl);
+    };
 
     const fetchNextLesson = async (level) => {
         try {
@@ -41,9 +58,9 @@ const Dashboard = () => {
                 // Fetch bài học dựa trên level của user vừa lấy được
                 await fetchNextLesson(currentUser.level);
 
-                // Fetch bảng xếp hạng
-                const leaderboardRes = await api.get('/auth/leaderboard');
-                setLeaderboard(leaderboardRes.data.data);
+                // Fetch bảng xếp hạng cho level hiện tại của user
+                if (!leaderboardTab) setLeaderboardTab(currentUser.level || 'Thấp');
+                await fetchLeaderboardData(currentUser.level || 'Thấp');
             } catch (err) {
                 console.error('Không thể lấy thông tin', err);
             } finally {
@@ -74,6 +91,7 @@ const Dashboard = () => {
         { label: 'Kinh nghiệm (XP)', value: user.xp || 0, icon: <Zap size={24} />, color: '#f59e0b', bg: '#fef3c7' },
         { label: 'Chuỗi ngày (Streak)', value: `${user.streak || 0} ngày`, icon: <Flame size={24} />, color: '#ef4444', bg: '#fee2e2' },
         { label: 'Cấp độ hiện tại', value: user.level || 'Thấp', icon: <Trophy size={24} />, color: '#4f46e5', bg: '#e0e7ff' },
+        { label: 'Bài đã hoàn thành', value: user.completedLessonsCount || 0, icon: <CheckCircle2 size={24} />, color: '#10b981', bg: '#d1fae5', onClick: () => setShowCompletedModal(true) },
     ];
 
     if (loading) {
@@ -204,29 +222,26 @@ const Dashboard = () => {
                 marginBottom: '4rem'
             }}>
                 {stats.map((stat, index) => (
-                    <div key={index} className="glass-card animate-fade-in" style={{
+                    <div key={index} className="glass-card animate-fade-in" onClick={stat.onClick || undefined} style={{
                         padding: '1.5rem',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '1.25rem',
                         animationDelay: `${index * 0.1}s`,
-                        borderBottom: `4px solid ${stat.color}`
-                    }}>
-                        <div style={{
-                            backgroundColor: stat.bg,
-                            color: stat.color,
-                            width: '60px',
-                            height: '60px',
-                            borderRadius: '20px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}>
+                        borderBottom: `4px solid ${stat.color}`,
+                        cursor: stat.onClick ? 'pointer' : 'default',
+                        transition: stat.onClick ? 'transform 0.2s, box-shadow 0.2s' : undefined
+                    }}
+                        onMouseEnter={stat.onClick ? (e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.1)'; } : undefined}
+                        onMouseLeave={stat.onClick ? (e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; } : undefined}
+                    >
+                        <div style={{ backgroundColor: stat.bg, color: stat.color, width: '60px', height: '60px', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {stat.icon}
                         </div>
                         <div>
                             <div style={{ color: 'var(--gray-500)', fontSize: '0.875rem', fontWeight: '600' }}>{stat.label}</div>
                             <div style={{ fontSize: '1.75rem', fontWeight: '800', color: 'var(--dark)' }}>{stat.value}</div>
+                            {stat.onClick && <div style={{ fontSize: '0.75rem', color: stat.color, fontWeight: '600' }}>Bấm để xem chi tiết →</div>}
                         </div>
                     </div>
                 ))}
@@ -354,11 +369,43 @@ const Dashboard = () => {
                     )}
                 </div>
 
-                {/* Sidebar: Bảng xếp hạng */}
                 <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: '800' }}>Bảng xếp hạng</h2>
                         <Trophy size={20} style={{ color: '#f59e0b' }} />
+                    </div>
+
+                    {/* Tabs Bảng xếp hạng */}
+                    <div style={{
+                        display: 'flex',
+                        background: 'white',
+                        padding: '0.4rem',
+                        borderRadius: '16px',
+                        marginBottom: '1rem',
+                        gap: '0.4rem',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.02)'
+                    }}>
+                        {['Thấp', 'Trung', 'Cao'].map((lvl) => (
+                            <button
+                                key={lvl}
+                                onClick={() => handleLeaderboardTab(lvl)}
+                                style={{
+                                    flex: 1,
+                                    padding: '0.6rem',
+                                    border: 'none',
+                                    borderRadius: '12px',
+                                    fontWeight: '700',
+                                    fontSize: '0.85rem',
+                                    cursor: 'pointer',
+                                    backgroundColor: leaderboardTab === lvl ? 'var(--primary)' : 'transparent',
+                                    color: leaderboardTab === lvl ? 'white' : 'var(--gray-500)',
+                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    boxShadow: leaderboardTab === lvl ? '0 4px 10px rgba(79, 70, 229, 0.3)' : 'none',
+                                }}
+                            >
+                                {lvl}
+                            </button>
+                        ))}
                     </div>
 
                     <div className="glass-card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -450,6 +497,37 @@ const Dashboard = () => {
                     </div>
                 </div>
             </div>
+
+            {/* ===== MODAL 12: Danh sách bài đã hoàn thành ===== */}
+            {showCompletedModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50 }}>
+                    <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '2rem', width: '580px', maxWidth: '92%', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 50px rgba(0,0,0,0.15)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <div>
+                                <h3 style={{ fontWeight: 'bold', fontSize: '1.3rem', margin: 0 }}>🏆 Bài học đã hoàn thành</h3>
+                                <p style={{ color: 'var(--gray-500)', fontSize: '0.875rem', margin: '0.25rem 0 0' }}>Tổng cộng: {user.completedLessons?.length || 0} bài</p>
+                            </div>
+                            <button onClick={() => setShowCompletedModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={22} /></button>
+                        </div>
+                        <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {user.completedLessons?.length > 0 ? (
+                                user.completedLessons.map((cl, i) => (
+                                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', backgroundColor: '#f0fdf4', borderRadius: '10px', border: '1px solid #bbf7d0' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            <CheckCircle2 size={20} color="#10b981" />
+                                            <span style={{ fontWeight: '600' }}>{cl.lesson?.title || 'Bài học'}</span>
+                                        </div>
+                                        <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>{new Date(cl.completedAt).toLocaleDateString('vi-VN')}</span>
+                                    </div>
+                                ))
+                            ) : (
+                                <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--gray-500)' }}>Bạn chưa hoàn thành bài học nào. Hãy bắt đầu ngay!</div>
+                            )}
+                        </div>
+                        <button onClick={() => setShowCompletedModal(false)} className="btn btn-primary" style={{ marginTop: '1.5rem' }}>Đóng</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

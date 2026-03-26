@@ -1,7 +1,27 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, X, ShieldCheck, FileText } from 'lucide-react';
 import api from '../api/axios';
+
+const TERMS_CONTENT = `Điều khoản sử dụng dịch vụ học tiếng Anh trực tuyến
+
+1. Chấp nhận điều khoản
+Khi sử dụng nền tảng này, bạn đồng ý tuân thủ các điều khoản được nêu dưới đây. Nếu không đồng ý, vui lòng không sử dụng dịch vụ.
+
+2. Tài khoản người dùng
+Bạn có trách nhiệm bảo mật thông tin đăng nhập. Mọi hành động thực hiện dưới tài khoản của bạn đều thuộc trách nhiệm của bạn.
+
+3. Sử dụng đúng mục đích
+Dịch vụ chỉ được sử dụng cho mục đích học tập cá nhân. Nghiêm cấm mọi hành động sao chép, chia sẻ hay phân phối nội dung học tập mà không có sự cho phép.
+
+4. Quyền riêng tư
+Chúng tôi cam kết bảo vệ thông tin cá nhân của bạn theo chính sách bảo mật của nền tảng.
+
+5. Nội dung hệ thống
+Tất cả nội dung bài học, câu hỏi, và tài liệu trên hệ thống thuộc quyền sở hữu của nền tảng. Người dùng không có quyền thương mại hoá các nội dung này.
+
+6. Chấm dứt dịch vụ
+Chúng tôi có quyền tạm khóa hoặc xóa tài khoản nếu phát hiện vi phạm các điều khoản trên.`;
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -17,7 +37,18 @@ const Register = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
+    const [agreedTerms, setAgreedTerms] = useState(false);
     const navigate = useNavigate();
+
+    // Modal 14: OTP
+    const [showOtpModal, setShowOtpModal] = useState(false);
+    const [otpCode, setOtpCode] = useState('');
+    const [otpLoading, setOtpLoading] = useState(false);
+    const [otpError, setOtpError] = useState('');
+    const [registeredEmail, setRegisteredEmail] = useState('');
+
+    // Modal 15: Terms
+    const [showTermsModal, setShowTermsModal] = useState(false);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -31,19 +62,38 @@ const Register = () => {
         if (formData.password !== formData.passwordConfirm) {
             return setError('Mật khẩu xác nhận không khớp');
         }
+        if (!agreedTerms) {
+            return setError('Bạn phải đồng ý với Điều khoản sử dụng để tiếp tục.');
+        }
 
         setLoading(true);
         try {
             const response = await api.post('/auth/register', formData);
             setSuccess(response.data.message);
-            // Sau 1.5 giây, chuyển sang trang xác thực OTP kèm theo email
+            setRegisteredEmail(formData.email);
+            // Mở Modal OTP (14) thay vì chuyển trang
             setTimeout(() => {
-                navigate('/verify-otp', { state: { email: formData.email } });
-            }, 1500);
+                setShowOtpModal(true);
+            }, 800);
         } catch (err) {
             setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleVerifyOtp = async (e) => {
+        e.preventDefault();
+        setOtpLoading(true);
+        setOtpError('');
+        try {
+            await api.post('/auth/verify-otp', { email: registeredEmail, otp: otpCode });
+            setShowOtpModal(false);
+            navigate('/login');
+        } catch (err) {
+            setOtpError(err.response?.data?.message || 'Mã OTP không hợp lệ. Vui lòng thử lại.');
+        } finally {
+            setOtpLoading(false);
         }
     };
 
@@ -62,9 +112,7 @@ const Register = () => {
                 )}
 
                 {success && (
-                    <div style={{
-                        backgroundColor: '#ecfdf5', color: 'var(--success)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.875rem', textAlign: 'center'
-                    }}>
+                    <div style={{ backgroundColor: '#ecfdf5', color: 'var(--success)', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.875rem', textAlign: 'center' }}>
                         {success}
                     </div >
                 )}
@@ -95,14 +143,7 @@ const Register = () => {
                     <div className="input-group">
                         <label htmlFor="password">Mật khẩu</label>
                         <div className="password-wrapper">
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                id="password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                placeholder="••••••••"
-                                required
-                            />
+                            <input type={showPassword ? 'text' : 'password'} id="password" value={formData.password} onChange={handleChange} placeholder="••••••••" required />
                             <span className="eye-icon" onClick={() => setShowPassword(!showPassword)}>
                                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                             </span>
@@ -111,18 +152,22 @@ const Register = () => {
                     <div className="input-group">
                         <label htmlFor="passwordConfirm">Xác nhận mật khẩu</label>
                         <div className="password-wrapper">
-                            <input
-                                type={showPasswordConfirm ? 'text' : 'password'}
-                                id="passwordConfirm"
-                                value={formData.passwordConfirm}
-                                onChange={handleChange}
-                                placeholder="••••••••"
-                                required
-                            />
+                            <input type={showPasswordConfirm ? 'text' : 'password'} id="passwordConfirm" value={formData.passwordConfirm} onChange={handleChange} placeholder="••••••••" required />
                             <span className="eye-icon" onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}>
                                 {showPasswordConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
                             </span>
                         </div>
+                    </div>
+
+                    {/* Checkbox Điều khoản - mở Modal 15 */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', padding: '0.75rem', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
+                        <input type="checkbox" id="terms" checked={agreedTerms} onChange={(e) => setAgreedTerms(e.target.checked)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                        <label htmlFor="terms" style={{ fontSize: '0.875rem', color: 'var(--gray-500)', cursor: 'pointer', userSelect: 'none' }}>
+                            Tôi đồng ý với{' '}
+                            <button type="button" onClick={() => setShowTermsModal(true)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: '700', cursor: 'pointer', padding: 0, fontSize: '0.875rem' }}>
+                                Điều khoản sử dụng
+                            </button>
+                        </label>
                     </div>
 
                     <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
@@ -134,6 +179,68 @@ const Register = () => {
                     Đã có tài khoản? <Link to="/login" style={{ color: 'var(--primary)', fontWeight: '600', textDecoration: 'none' }}>Đăng nhập</Link>
                 </p>
             </div >
+
+            {/* ===== MODAL 14: Xác thực OTP ===== */}
+            {showOtpModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.55)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50 }}>
+                    <div className="glass-card" style={{ padding: '2.5rem', width: '420px', maxWidth: '92%', textAlign: 'center', position: 'relative' }}>
+                        <div style={{ width: '70px', height: '70px', backgroundColor: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                            <ShieldCheck size={36} color="var(--primary)" />
+                        </div>
+                        <h3 style={{ fontWeight: 'bold', fontSize: '1.4rem', marginBottom: '0.5rem' }}>Xác thực tài khoản</h3>
+                        <p style={{ color: 'var(--gray-500)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+                            Mã OTP đã được gửi tới <strong>{registeredEmail}</strong>. Vui lòng kiểm tra email và nhập mã bên dưới.
+                        </p>
+                        {otpError && (
+                            <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '0.6rem', borderRadius: '6px', marginBottom: '1rem', fontSize: '0.875rem' }}>
+                                {otpError}
+                            </div>
+                        )}
+                        <form onSubmit={handleVerifyOtp}>
+                            <input
+                                type="text"
+                                value={otpCode}
+                                onChange={(e) => setOtpCode(e.target.value)}
+                                placeholder="Nhập mã OTP 6 chữ số"
+                                required
+                                maxLength={6}
+                                style={{ width: '100%', padding: '1rem', textAlign: 'center', fontSize: '1.5rem', letterSpacing: '0.5rem', fontWeight: 'bold', borderRadius: '12px', border: '2px solid #d1d5db', marginBottom: '1rem', outline: 'none', boxSizing: 'border-box' }}
+                            />
+                            <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={otpLoading}>
+                                {otpLoading ? 'Đang xác thực...' : 'Xác nhận'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* ===== MODAL 15: Điều khoản sử dụng ===== */}
+            {showTermsModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.55)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50 }}>
+                    <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '2rem', width: '600px', maxWidth: '92%', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 50px rgba(0,0,0,0.15)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <FileText size={24} color="var(--primary)" />
+                                <h3 style={{ fontWeight: 'bold', fontSize: '1.25rem', margin: 0 }}>Điều khoản sử dụng</h3>
+                            </div>
+                            <button onClick={() => setShowTermsModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}>
+                                <X size={22} />
+                            </button>
+                        </div>
+                        <div style={{ overflowY: 'auto', flex: 1, whiteSpace: 'pre-line', color: '#374151', lineHeight: 1.8, fontSize: '0.95rem', paddingRight: '0.5rem' }}>
+                            {TERMS_CONTENT}
+                        </div>
+                        <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem' }}>
+                            <button onClick={() => { setAgreedTerms(false); setShowTermsModal(false); }} style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: 'white', fontWeight: '600', cursor: 'pointer' }}>
+                                Từ chối
+                            </button>
+                            <button onClick={() => { setAgreedTerms(true); setShowTermsModal(false); }} className="btn btn-primary" style={{ flex: 1 }}>
+                                Tôi đồng ý
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 };

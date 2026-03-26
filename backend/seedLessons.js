@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const Lesson = require('./schemas/Lesson');
+const Question = require('./schemas/Question');
+const Category = require('./schemas/Category');
 
 dotenv.config();
 
@@ -55,16 +57,16 @@ const lessons = [
             <p>Nghe đoạn hội thoại và điền từ hoặc sắp xếp từ thích hợp.</p>
         `,
         questions: [
-            { type: 'true_false', mediaUrl: 'https://cdn.pixabay.com/audio/2022/03/15/audio_226c6d2679.mp3', question: 'Người trong Audio vừa nói "Hello", đúng hay sai?', correctAnswer: 'True', explanation: 'Audio rõ ràng phát ra tiếng Hello.' },
-            { type: 'fill_blank', mediaUrl: 'https://cdn.pixabay.com/audio/2022/03/15/audio_226c6d2679.mp3', question: 'Tên bạn là gì trong tiếng Anh: What is ___ name?', correctAnswer: 'your', explanation: 'Your name = tên của bạn.' },
-            { type: 'sort_sentence', mediaUrl: 'https://cdn.pixabay.com/audio/2022/03/15/audio_226c6d2679.mp3', question: 'Sắp xếp câu giới thiệu đến từ Việt Nam:', options: ['Vietnam', 'I', 'from', 'am'], correctAnswer: 'I,am,from,Vietnam', explanation: 'I am from Vietnam.' },
-            { type: 'writing', mediaUrl: 'https://cdn.pixabay.com/audio/2022/03/15/audio_226c6d2679.mp3', question: 'Dịch câu "Rất vui được gặp bạn" sang tiếng Anh:', correctAnswer: 'Nice to meet you', explanation: 'Nice to meet you là câu dùng khi mới quen ai đó.' },
-            { type: 'multiple_choice', mediaUrl: 'https://cdn.pixabay.com/audio/2022/03/15/audio_226c6d2679.mp3', question: 'Câu trả lời cho "How old are you?"', options: ['I am fine', 'I am 20 years old', 'My name is Peter', 'Yes, I am'], correctAnswer: 'I am 20 years old', explanation: 'Hỏi tuổi dùng I am + số.' },
-            { type: 'fill_blank', mediaUrl: 'https://cdn.pixabay.com/audio/2022/03/15/audio_226c6d2679.mp3', question: '"I ___ a student." Điền từ còn thiếu?', correctAnswer: 'am', explanation: 'Chủ ngữ I đi với am.' },
-            { type: 'multiple_choice', mediaUrl: 'https://cdn.pixabay.com/audio/2022/03/15/audio_226c6d2679.mp3', question: 'Câu hỏi "Ai đây?" trong tiếng Anh?', options: ['Who are you?', 'How are you?', 'What is your name?', 'Where are you?'], correctAnswer: 'Who are you?', explanation: 'Đây là câu hỏi người.' },
-            { type: 'sort_sentence', mediaUrl: 'https://cdn.pixabay.com/audio/2022/03/15/audio_226c6d2679.mp3', question: 'Sắp xếp câu: "Tôi 20 tuổi"', options: ['years', 'old', '20', 'I', 'am'], correctAnswer: 'I,am,20,years,old', explanation: 'I am 20 years old.' },
-            { type: 'writing', mediaUrl: 'https://cdn.pixabay.com/audio/2022/03/15/audio_226c6d2679.mp3', question: 'Ghi lại dạng viết tắt của "I am"', correctAnswer: "I'm", explanation: "I'm là dạng viết tắt của I am." },
-            { type: 'true_false', mediaUrl: 'https://cdn.pixabay.com/audio/2022/03/15/audio_226c6d2679.mp3', question: 'Câu hỏi "Where are you from?" dùng để hỏi Tuổi, đúng hay sai?', correctAnswer: 'False', explanation: 'Where dùng để hỏi nơi chốn (Từ đâu đến).' }
+            { type: 'true_false', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Người trong Audio vừa nói "Hello", đúng hay sai?', correctAnswer: 'True', explanation: 'Audio rõ ràng phát ra tiếng Hello.' },
+            { type: 'fill_blank', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Tên bạn là gì trong tiếng Anh: What is ___ name?', correctAnswer: 'your', explanation: 'Your name = tên của bạn.' },
+            { type: 'sort_sentence', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Sắp xếp câu giới thiệu đến từ Việt Nam:', options: ['Vietnam', 'I', 'from', 'am'], correctAnswer: 'I,am,from,Vietnam', explanation: 'I am from Vietnam.' },
+            { type: 'writing', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Dịch câu "Rất vui được gặp bạn" sang tiếng Anh:', correctAnswer: 'Nice to meet you', explanation: 'Nice to meet you là câu dùng khi mới quen ai đó.' },
+            { type: 'multiple_choice', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Câu trả lời cho "How old are you?"', options: ['I am fine', 'I am 20 years old', 'My name is Peter', 'Yes, I am'], correctAnswer: 'I am 20 years old', explanation: 'Hỏi tuổi dùng I am + số.' },
+            { type: 'fill_blank', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: '"I ___ a student." Điền từ còn thiếu?', correctAnswer: 'am', explanation: 'Chủ ngữ I đi với am.' },
+            { type: 'multiple_choice', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Câu hỏi "Ai đây?" trong tiếng Anh?', options: ['Who are you?', 'How are you?', 'What is your name?', 'Where are you?'], correctAnswer: 'Who are you?', explanation: 'Đây là câu hỏi người.' },
+            { type: 'sort_sentence', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Sắp xếp câu: "Tôi 20 tuổi"', options: ['years', 'old', '20', 'I', 'am'], correctAnswer: 'I,am,20,years,old', explanation: 'I am 20 years old.' },
+            { type: 'writing', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Ghi lại dạng viết tắt của "I am"', correctAnswer: "I'm", explanation: "I'm là dạng viết tắt của I am." },
+            { type: 'true_false', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Câu hỏi "Where are you from?" dùng để hỏi Tuổi, đúng hay sai?', correctAnswer: 'False', explanation: 'Where dùng để hỏi nơi chốn (Từ đâu đến).' }
         ]
     },
     {
@@ -80,7 +82,7 @@ const lessons = [
             <p>Nghe và chọn hoặc viết lại câu chính xác về thói quen diễn ra ở hiện tại.</p>
         `,
         questions: [
-            { type: 'multiple_choice', mediaUrl: 'https://actions.google.com/sounds/v1/human_voices/human_male_hello.ogg', question: 'Người nói có thể đang chia động từ ở ngôi thứ mấy?', options: ['Ngôi 1', 'Ngôi 2', 'Ngôi 3'], correctAnswer: 'Ngôi 1', explanation: 'Ví dụ nghe.' },
+            { type: 'multiple_choice', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Người nói có thể đang chia động từ ở ngôi thứ mấy?', options: ['Ngôi 1', 'Ngôi 2', 'Ngôi 3'], correctAnswer: 'Ngôi 1', explanation: 'Ví dụ nghe.' },
             { type: 'fill_blank', question: 'She ___ a doctor.', correctAnswer: 'is', explanation: 'She đi với is.' },
             { type: 'multiple_choice', question: 'They ___ football every Sunday.', options: ['play', 'plays', 'playing', 'played'], correctAnswer: 'play', explanation: 'Số nhiều dùng play.' },
             { type: 'sort_sentence', question: 'Sắp xếp câu:', options: ['like', 'apples', 'I', 'do', 'not'], correctAnswer: 'I,do,not,like,apples', explanation: 'I do not like apples.' },
@@ -130,7 +132,7 @@ const lessons = [
             <p>Nghe Audio và chọn đáp án đúng để hoàn thành câu Điều kiện.</p>
         `,
         questions: [
-            { type: 'multiple_choice', mediaUrl: 'https://actions.google.com/sounds/v1/human_voices/human_male_hello.ogg', question: 'Lắng nghe và chọn. Anh ta nói gì?', options: ['Hello', 'Hi', 'How are you'], correctAnswer: 'Hello', explanation: 'Âm thanh phát ra tiếng Hello.' },
+            { type: 'multiple_choice', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Lắng nghe và chọn. Anh ta nói gì?', options: ['Hello', 'Hi', 'How are you'], correctAnswer: 'Hello', explanation: 'Âm thanh phát ra tiếng Hello.' },
             { type: 'fill_blank', question: 'If it rains, we ___ at home.', correctAnswer: 'will stay', explanation: 'Loại 1 (có thể xảy ra).' },
             { type: 'sort_sentence', question: 'Sắp xếp câu loại 2:', options: ['were', 'would', 'I', 'If', 'you', 'study'], correctAnswer: 'If,I,were,you,I,would,study', explanation: 'If I were you I would study.' },
             { type: 'writing', question: 'Dịch "Nếu tôi có tiền, tôi sẽ mua xe bus":', correctAnswer: 'If I had money, I would buy a bus', explanation: 'Điều kiện loại 2 giả định trái hiện tại.' },
@@ -153,13 +155,21 @@ const lessons = [
         content: `
             <h3>1. Màu sắc (Colors)</h3>
             <ul>
-                <li>Red: Đỏ | Blue: Xanh dương | Green: Xanh lá</li>
-                <li>Yellow: Vàng | Black: Đen | White: Trắng</li>
+                <li>Red: Đỏ</li>
+                <li>Blue: Xanh dương</li>
+                <li>Green: Xanh lá</li>
+                <li>Yellow: Vàng</li>
+                <li>Black: Đen</li>
+                <li>White: Trắng</li>
             </ul>
             <h3>2. Trang phục (Clothing)</h3>
             <ul>
-                <li>Shirt: Áo sơ mi | T-shirt: Áo thun | Pants: Quần dài</li>
-                <li>Dress: Váy | Shoes: Giày | Hat: Mũ</li>
+                <li>Shirt: Áo sơ mi</li>
+                <li>T-shirt: Áo thun</li>
+                <li>Pants: Quần dài</li>
+                <li>Dress: Váy</li>
+                <li>Shoes: Giày</li>
+                <li>Hat: Mũ</li>
             </ul>
         `,
         questions: [
@@ -185,11 +195,18 @@ const lessons = [
         order: 4,
         content: `
             <h3>1. Thành viên gia đình</h3>
-            <p>Father: Bố | Mother: Mẹ | Brother: Anh/em trai | Sister: Chị/em gái</p>
+            <ul>
+                <li>Father: Bố</li>
+                <li>Mother: Mẹ</li>
+                <li>Brother: Anh/em trai</li>
+                <li>Sister: Chị/em gái</li>
+            </ul>
             <h3>2. Tính từ sở hữu (Possessive Adjectives)</h3>
             <ul>
-                <li>My: Của tôi | Your: Của bạn</li>
-                <li>His: Của anh ấy | Her: Của cô ấy</li>
+                <li>My: Của tôi</li>
+                <li>Your: Của bạn</li>
+                <li>His: Của anh ấy</li>
+                <li>Her: Của cô ấy</li>
             </ul>
         `,
         questions: [
@@ -328,11 +345,40 @@ const seedDB = async () => {
         await mongoose.connect(process.env.MONGODB_URI);
         console.log('MongoDB Connected for seeding...');
 
+        await Category.deleteMany({});
         await Lesson.deleteMany({});
-        console.log('Old lessons cleared.');
+        await Question.deleteMany({});
+        console.log('Old categories, lessons, and questions cleared.');
 
-        await Lesson.insertMany(lessons);
-        console.log('New lessons seeded with 10 questions each!');
+        // Initialize categories
+        const readingCat = await Category.create({ name: 'Reading', description: 'Kỹ năng Đọc hiểu và Từ vựng', order: 1 });
+        const listeningCat = await Category.create({ name: 'Listening', description: 'Kỹ năng Nghe hiểu', order: 2 });
+        const writingCat = await Category.create({ name: 'Writing', description: 'Kỹ năng Viết và Ngữ pháp', order: 3 });
+
+        for (const lessonData of lessons) {
+            const { questions, type, ...lessonFields } = lessonData;
+
+            let categoryId = readingCat._id;
+            if (type === 'Listening') categoryId = listeningCat._id;
+            else if (type === 'Vocabulary') categoryId = readingCat._id;
+            else if (type === 'Grammar') categoryId = writingCat._id;
+
+            const newLesson = await Lesson.create({
+                ...lessonFields,
+                categoryId
+            });
+
+            if (questions && questions.length > 0) {
+                const questionsToInsert = questions.map(q => ({
+                    ...q,
+                    lessonId: newLesson._id,
+                    level: lessonFields.level
+                }));
+                await Question.insertMany(questionsToInsert);
+            }
+        }
+
+        console.log('New lessons and questions seeded successfully!');
 
         process.exit();
     } catch (error) {

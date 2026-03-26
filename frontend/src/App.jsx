@@ -9,6 +9,8 @@ import Footer from './components/Footer';
 import Profile from './pages/Profile';
 import LessonDetail from './pages/LessonDetail';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   return (
@@ -60,6 +62,18 @@ function App() {
                   <LessonDetail />
                   <Footer />
                 </ProtectedRoute>
+              }
+            />
+
+            {/* Route riêng cho Admin */}
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <Navbar />
+                  <AdminDashboard />
+                  <Footer />
+                </AdminRoute>
               }
             />
 

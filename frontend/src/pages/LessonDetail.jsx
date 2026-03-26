@@ -7,6 +7,7 @@ const LessonDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [lesson, setLesson] = useState(null);
+    const [vocabularies, setVocabularies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [step, setStep] = useState('content'); // 'content' or 'quiz'
     const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -28,6 +29,16 @@ const LessonDetail = () => {
                 // }
 
                 setLesson(lessonData);
+
+                // Fetch vocabularies associated with this lesson
+                try {
+                    const vocabRes = await api.get(`/vocabulary?lessonId=${id}`);
+                    if (vocabRes.data && vocabRes.data.success) {
+                        setVocabularies(vocabRes.data.data);
+                    }
+                } catch (vocabErr) {
+                    console.error('Lỗi khi tải từ vựng', vocabErr);
+                }
             } catch (err) {
                 console.error('Lỗi khi tải bài học', err);
             } finally {
@@ -94,44 +105,6 @@ const LessonDetail = () => {
     if (loading) return <div className="container" style={{ textAlign: 'center', marginTop: '5rem' }}>Đang tải bài học...</div>;
     if (!lesson) return <div className="container" style={{ textAlign: 'center', marginTop: '5rem' }}>Không tìm thấy bài học.</div>;
 
-    if (completed) {
-        return (
-            <div className="container" style={{ maxWidth: '600px', textAlign: 'center', marginTop: '5rem' }}>
-                <div className="glass-card animate-fade-in" style={{ padding: '4rem 2rem' }}>
-                    <div style={{
-                        width: '100px', height: '100px', backgroundColor: '#10b981', color: 'white',
-                        borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        margin: '0 auto 2rem', boxShadow: '0 20px 40px rgba(16, 185, 129, 0.3)'
-                    }}>
-                        <CheckCircle2 size={60} />
-                    </div>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '1rem' }}> Tuyệt vời!</h1>
-                    <p style={{ color: 'var(--gray-500)', fontSize: '1.2rem', marginBottom: '2rem' }}>
-                        Bạn đã hoàn thành bài học <strong>{lesson.title}</strong>
-                    </p>
-
-                    <div className="glass-card" style={{
-                        background: 'var(--primary-light)', color: 'var(--primary)',
-                        padding: '1.5rem', borderRadius: '20px', display: 'inline-flex',
-                        alignItems: 'center', gap: '1rem', marginBottom: '3rem'
-                    }}>
-                        <Zap size={32} />
-                        <div style={{ textAlign: 'left' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: '600' }}>Điểm kinh nghiệm nhận được</div>
-                            <div style={{ fontSize: '2rem', fontWeight: '900' }}>+{xpAwarded} XP</div>
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                        <button onClick={() => navigate('/dashboard')} className="btn btn-primary" style={{ padding: '1rem 2.5rem', borderRadius: '15px', fontWeight: '700' }}>
-                            Về Dashboard
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="container" style={{ maxWidth: '900px', paddingBottom: '5rem' }}>
             <button
@@ -159,6 +132,23 @@ const LessonDetail = () => {
                     {step === 'content' ? (
                         <div className="animate-fade-in">
                             <div className="lesson-content" dangerouslySetInnerHTML={{ __html: lesson.content }}></div>
+
+                            {vocabularies.length > 0 && (
+                                <div style={{ marginTop: '3rem' }}>
+                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', color: '#1f2937' }}>Từ vựng trong bài</h3>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
+                                        {vocabularies.map(v => (
+                                            <div key={v._id} className="glass-card" style={{ padding: '1rem', borderLeft: '4px solid #3b82f6' }}>
+                                                <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#2563eb' }}>{v.word}</div>
+                                                {v.pronunciation && <div style={{ fontStyle: 'italic', color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>/{v.pronunciation}/</div>}
+                                                <div style={{ fontWeight: '500', marginTop: '0.25rem' }}>{v.meaning}</div>
+                                                {v.example && <div style={{ marginTop: '0.75rem', fontSize: '0.9rem', color: '#4b5563', backgroundColor: '#f3f4f6', padding: '0.5rem', borderRadius: '4px' }}>VD: {v.example}</div>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             <div style={{ marginTop: '3rem', pt: '2rem', borderTop: '1px solid var(--gray-100)', textAlign: 'right' }}>
                                 <button onClick={nextStep} className="btn btn-primary" style={{ padding: '1rem 3rem', borderRadius: '15px', fontWeight: '700', fontSize: '1.1rem', display: 'inline-flex', alignItems: 'center', gap: '0.75rem' }}>
                                     Tiếp theo <ArrowRight size={22} />
@@ -173,6 +163,30 @@ const LessonDetail = () => {
                                     <div style={{ width: `${((currentQuestion + 1) / lesson.questions.length) * 100}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.3s ease' }}></div>
                                 </div>
                             </div>
+
+                            {(() => {
+                                const currentQuestionId = lesson.questions[currentQuestion]._id;
+                                const qVocab = vocabularies.filter(v => v.questionId === currentQuestionId);
+                                if (qVocab.length > 0) {
+                                    return (
+                                        <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#eff6ff', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+                                            <div style={{ fontWeight: 'bold', color: '#1e40af', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <Info size={18} /> Gợi ý Từ vựng:
+                                            </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                                {qVocab.map(v => (
+                                                    <div key={v._id} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                        <strong style={{ color: '#2563eb' }}>{v.word}</strong>
+                                                        {v.pronunciation && <span style={{ color: '#6b7280', fontStyle: 'italic' }}>/{v.pronunciation}/</span>}
+                                                        <span>: {v.meaning}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
 
                             {lesson.questions[currentQuestion].passage && (
                                 <div style={{
@@ -470,8 +484,40 @@ const LessonDetail = () => {
                     )}
                 </div>
             </div>
+
+            {/* ===== MODAL 11: K\u1ebft qu\u1ea3 b\u00e0i h\u1ecdc ===== */}
+            {completed && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 60 }}>
+                    <div className="glass-card animate-fade-in" style={{ padding: '3.5rem 2.5rem', maxWidth: '520px', width: '92%', textAlign: 'center', borderRadius: '24px', boxShadow: '0 30px 60px rgba(0,0,0,0.25)' }}>
+                        <div style={{ width: '100px', height: '100px', backgroundColor: '#10b981', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem', boxShadow: '0 20px 40px rgba(16, 185, 129, 0.3)' }}>
+                            <CheckCircle2 size={56} />
+                        </div>
+                        <h2 style={{ fontSize: '2.2rem', fontWeight: '900', marginBottom: '0.75rem' }}>🎉 Tuyệt vời!</h2>
+                        <p style={{ color: 'var(--gray-500)', fontSize: '1.1rem', marginBottom: '2rem' }}>
+                            Bạn đã hoàn thành bài học <br /><strong style={{ color: '#1f2937' }}>{lesson.title}</strong>
+                        </p>
+                        <div style={{ background: 'linear-gradient(135deg, var(--primary-light), #c7d2fe)', color: 'var(--primary)', padding: '1.5rem 2rem', borderRadius: '20px', display: 'inline-flex', alignItems: 'center', gap: '1rem', marginBottom: '2.5rem', boxShadow: '0 8px 20px rgba(74,144,226,0.15)' }}>
+                            <Zap size={36} />
+                            <div style={{ textAlign: 'left' }}>
+                                <div style={{ fontSize: '0.9rem', fontWeight: '600' }}>Kinh nghiệm nhận được</div>
+                                <div style={{ fontSize: '2.5rem', fontWeight: '900', lineHeight: 1 }}>+{xpAwarded} XP</div>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <button onClick={() => navigate('/learning-path')} style={{ padding: '0.9rem 1.8rem', borderRadius: '14px', border: '2px solid var(--primary)', backgroundColor: 'white', color: 'var(--primary)', fontWeight: '700', cursor: 'pointer', fontSize: '1rem' }}>
+                                Lộ trình học
+                            </button>
+                            <button onClick={() => navigate('/dashboard')} className="btn btn-primary" style={{ padding: '0.9rem 1.8rem', borderRadius: '14px', fontWeight: '700', fontSize: '1rem' }}>
+                                Về Dashboard
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
 export default LessonDetail;
+
+

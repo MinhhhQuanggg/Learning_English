@@ -49,6 +49,9 @@ const userSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
+        lastActiveDate: {
+            type: Date,
+        },
         avatar: {
             type: String,
             default: '', // Lưu Base64 hoặc URL

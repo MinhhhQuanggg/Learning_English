@@ -1,7 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Award, Camera, Save, ChevronLeft, CheckCircle2 } from 'lucide-react';
+import { User, Mail, Phone, Award, Camera, Save, ChevronLeft, CheckCircle2, X, Lock } from 'lucide-react';
 import api from '../api/axios';
+
+const AVATAR_PRESETS = [
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=Felix',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=Aneka',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=Mia',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=Charlie',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=Zoe',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=Max',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=Luna',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=Alex',
+    'https://api.dicebear.com/7.x/adventurer/svg?seed=Jordan',
+];
 
 const Profile = () => {
     const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
@@ -15,6 +27,16 @@ const Profile = () => {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
+
+    // Modal 9: Đổi mật khẩu
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [pwForm, setPwForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    const [pwLoading, setPwLoading] = useState(false);
+    const [pwMsg, setPwMsg] = useState('');
+
+    // Modal 10: Cập nhật Avatar
+    const [showAvatarModal, setShowAvatarModal] = useState(false);
+    const [selectedPresetAvatar, setSelectedPresetAvatar] = useState('');
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -75,6 +97,42 @@ const Profile = () => {
                 setMessage(err.response?.data?.message || 'Có lỗi khi tải lên ảnh');
                 setFormData(prev => ({ ...prev, avatar: user.avatar }));
             }
+        }
+    };
+
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        if (pwForm.newPassword !== pwForm.confirmPassword) {
+            return setPwMsg('❌ Mật khẩu mới và xác nhận không khớp.');
+        }
+        setPwLoading(true);
+        setPwMsg('');
+        try {
+            await api.put('/auth/change-password', { oldPassword: pwForm.oldPassword, newPassword: pwForm.newPassword });
+            setPwMsg('✅ Đổi mật khẩu thành công!');
+            setPwForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+            setTimeout(() => setShowPasswordModal(false), 1500);
+        } catch (err) {
+            setPwMsg('❌ ' + (err.response?.data?.message || 'Mật khẩu cũ không đúng.'));
+        } finally {
+            setPwLoading(false);
+        }
+    };
+
+    const handleApplyPresetAvatar = async () => {
+        if (!selectedPresetAvatar) return;
+        try {
+            const res = await api.put('/auth/update-profile', { ...formData, avatar: selectedPresetAvatar });
+            if (res.data.success) {
+                setFormData(prev => ({ ...prev, avatar: selectedPresetAvatar }));
+                setUser(res.data.data);
+                localStorage.setItem('user', JSON.stringify(res.data.data));
+                setMessage('Đã cập nhật ảnh đại diện!');
+                setShowAvatarModal(false);
+                setTimeout(() => setMessage(''), 3000);
+            }
+        } catch (err) {
+            setMessage('Lỗi khi cập nhật avatar: ' + err.message);
         }
     };
 
@@ -147,20 +205,11 @@ const Profile = () => {
                                     <User size={80} style={{ color: 'var(--primary)' }} />
                                 )}
                             </div>
-                            <label style={{
-                                position: 'absolute',
-                                bottom: '5px',
-                                right: '5px',
-                                backgroundColor: 'var(--primary)',
-                                color: 'white',
-                                padding: '0.6rem',
-                                borderRadius: '50%',
-                                cursor: 'pointer',
-                                boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
-                                display: 'flex'
-                            }}>
+                            <label
+                                onClick={() => setShowAvatarModal(true)}
+                                style={{ position: 'absolute', bottom: '5px', right: '5px', backgroundColor: 'var(--primary)', color: 'white', padding: '0.6rem', borderRadius: '50%', cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.2)', display: 'flex' }}
+                            >
                                 <Camera size={18} />
-                                <input type="file" hidden onChange={handleAvatarChange} accept="image/*" />
                             </label>
                         </div>
                         <h2 style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>{user.fullName}</h2>
@@ -248,7 +297,14 @@ const Profile = () => {
                                     <option value="Cao">Cao cấp (Cao)</option>
                                 </select>
                             </div>
-                            <div style={{ gridColumn: 'span 2', textAlign: 'right', marginTop: '1rem' }}>
+                            <div style={{ gridColumn: 'span 2', textAlign: 'right', marginTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => { setShowPasswordModal(true); setPwMsg(''); }}
+                                    style={{ padding: '0.75rem 1.5rem', borderRadius: '16px', border: '2px solid var(--primary)', backgroundColor: 'white', color: 'var(--primary)', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                >
+                                    <Lock size={18} /> Đổi mật khẩu
+                                </button>
                                 <button
                                     className="btn btn-primary"
                                     type="submit"
@@ -282,6 +338,64 @@ const Profile = () => {
                     </div>
                 </div>
             </div>
+
+            {/* ===== MODAL 9: Đổi mật khẩu ===== */}
+            {showPasswordModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50 }}>
+                    <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '2rem', width: '440px', maxWidth: '92%', boxShadow: '0 25px 50px rgba(0,0,0,0.15)', position: 'relative' }}>
+                        <button onClick={() => setShowPasswordModal(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={22} /></button>
+                        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                            <div style={{ width: '60px', height: '60px', backgroundColor: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+                                <Lock size={28} color="var(--primary)" />
+                            </div>
+                            <h3 style={{ fontWeight: 'bold', fontSize: '1.3rem', marginBottom: '0.25rem' }}>Đổi mật khẩu</h3>
+                            <p style={{ color: 'var(--gray-500)', fontSize: '0.9rem' }}>Nhập mật khẩu cũ và mật khẩu mới của bạn.</p>
+                        </div>
+                        {pwMsg && (
+                            <div style={{ padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', backgroundColor: pwMsg.startsWith('✅') ? '#ecfdf5' : '#fee2e2', color: pwMsg.startsWith('✅') ? '#047857' : '#b91c1c', fontSize: '0.875rem', textAlign: 'center' }}>{pwMsg}</div>
+                        )}
+                        <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div className="input-group">
+                                <label>Mật khẩu cũ</label>
+                                <input type="password" value={pwForm.oldPassword} onChange={(e) => setPwForm({ ...pwForm, oldPassword: e.target.value })} required />
+                            </div>
+                            <div className="input-group">
+                                <label>Mật khẩu mới</label>
+                                <input type="password" value={pwForm.newPassword} onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })} required />
+                            </div>
+                            <div className="input-group">
+                                <label>Xác nhận mật khẩu mới</label>
+                                <input type="password" value={pwForm.confirmPassword} onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })} required />
+                            </div>
+                            <button type="submit" className="btn btn-primary" disabled={pwLoading}>
+                                {pwLoading ? 'Đang xử lý...' : 'Cập nhật mật khẩu'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* ===== MODAL 10: Chọn Avatar ===== */}
+            {showAvatarModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50 }}>
+                    <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '2rem', width: '500px', maxWidth: '92%', boxShadow: '0 25px 50px rgba(0,0,0,0.15)', position: 'relative' }}>
+                        <button onClick={() => setShowAvatarModal(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={22} /></button>
+                        <h3 style={{ fontWeight: 'bold', fontSize: '1.3rem', marginBottom: '0.5rem' }}>🖼️ Chọn ảnh đại diện</h3>
+                        <p style={{ color: 'var(--gray-500)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Chọn một avatar có sẵn bên dưới:</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+                            {AVATAR_PRESETS.map((url, i) => (
+                                <div key={i} onClick={() => setSelectedPresetAvatar(url)} style={{ cursor: 'pointer', borderRadius: '12px', padding: '0.5rem', border: `3px solid ${selectedPresetAvatar === url ? 'var(--primary)' : '#e5e7eb'}`, transition: 'all 0.2s', display: 'flex', justifyContent: 'center', backgroundColor: selectedPresetAvatar === url ? 'var(--primary-light)' : 'white' }}>
+                                    <img src={url} alt="Avatar" style={{ width: '80px', height: '80px', borderRadius: '50%' }} />
+                                </div>
+                            ))}
+                        </div>
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button onClick={() => setShowAvatarModal(false)} style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: 'white', fontWeight: '600', cursor: 'pointer' }}>Hủy</button>
+                            <button onClick={handleApplyPresetAvatar} className="btn btn-primary" style={{ flex: 1 }} disabled={!selectedPresetAvatar}>Áp dụng</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

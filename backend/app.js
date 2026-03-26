@@ -22,6 +22,9 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/lessons', require('./routes/lessonRoutes'));
+app.use('/api/categories', require('./routes/categoryRoutes'));
+app.use('/api/questions', require('./routes/questionRoutes'));
+app.use('/api/vocabulary', require('./routes/vocabularyRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Learning English API is running...');

@@ -180,7 +180,10 @@ exports.login = async (req, res) => {
                 fullName: user.fullName,
                 email: user.email,
                 level: user.level,
-                role: user.role
+                role: user.role,
+                streak: user.streak,
+                xp: user.xp,
+                avatar: user.avatar
             }
         });
     } catch (error) {
@@ -227,7 +230,12 @@ exports.updateProfile = async (req, res) => {
 // @route   GET /api/auth/leaderboard
 exports.getLeaderboard = async (req, res) => {
     try {
-        const users = await User.find()
+        let query = {};
+        if (req.query.level) {
+            query.level = req.query.level;
+        }
+
+        const users = await User.find(query)
             .select('fullName level xp avatar')
             .sort({ xp: -1 })
             .limit(10);
@@ -269,6 +277,55 @@ exports.uploadAvatar = async (req, res) => {
             avatar: avatarUrl,
             data: user
         });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Lấy tất cả user (Admin)
+// @route   GET /api/auth/users
+exports.getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find().select('-password').sort('-createdAt');
+        res.status(200).json({ success: true, count: users.length, data: users });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Lấy chi tiết user (Admin)
+// @route   GET /api/auth/users/:id
+exports.getUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password');
+        if (!user) return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+        res.status(200).json({ success: true, data: user });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Cập nhật quyền user (Admin)
+// @route   PUT /api/auth/users/:id
+exports.updateUser = async (req, res) => {
+    try {
+        const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).select('-password');
+        if (!user) return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+        res.status(200).json({ success: true, data: user });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Xóa user (Admin)
+// @route   DELETE /api/auth/users/:id
+exports.deleteUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+        if (user.role === 'admin') return res.status(400).json({ success: false, message: 'Không thể xóa tài khoản admin' });
+        await user.deleteOne();
+        res.status(200).json({ success: true, data: {} });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
