@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Trophy, Flame, Play, Clock, ChevronRight, BookOpen, PlayCircle, User, X, CheckCircle2 } from 'lucide-react';
+import { Zap, Trophy, Flame, Play, Clock, ChevronRight, BookOpen, PlayCircle, User, X, CheckCircle2, HelpCircle, Tag } from 'lucide-react';
 import api from '../api/axios';
 import mascotImg from '../assets/mascot.png';
 import oppIcon from '../assets/opportunity.png';
@@ -15,6 +15,8 @@ const Dashboard = () => {
     const [localLevel, setLocalLevel] = useState(user.level || 'Thấp');
     // Modal 12: Danh sách bài đã hoàn thành
     const [showCompletedModal, setShowCompletedModal] = useState(false);
+    // Modal chi tiết bài học đã hoàn thành
+    const [selectedCompletedLesson, setSelectedCompletedLesson] = useState(null);
     const navigate = useNavigate();
 
     const fetchLeaderboardData = async (level) => {
@@ -91,7 +93,7 @@ const Dashboard = () => {
         { label: 'Kinh nghiệm (XP)', value: user.xp || 0, icon: <Zap size={24} />, color: '#f59e0b', bg: '#fef3c7' },
         { label: 'Chuỗi ngày (Streak)', value: `${user.streak || 0} ngày`, icon: <Flame size={24} />, color: '#ef4444', bg: '#fee2e2' },
         { label: 'Cấp độ hiện tại', value: user.level || 'Thấp', icon: <Trophy size={24} />, color: '#4f46e5', bg: '#e0e7ff' },
-        { label: 'Bài đã hoàn thành', value: user.completedLessonsCount || 0, icon: <CheckCircle2 size={24} />, color: '#10b981', bg: '#d1fae5', onClick: () => setShowCompletedModal(true) },
+        { label: 'Bài đã hoàn thành', value: user.completedLessons?.length || 0, icon: <CheckCircle2 size={24} />, color: '#10b981', bg: '#d1fae5', onClick: () => setShowCompletedModal(true) },
     ];
 
     if (loading) {
@@ -512,12 +514,41 @@ const Dashboard = () => {
                         <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             {user.completedLessons?.length > 0 ? (
                                 user.completedLessons.map((cl, i) => (
-                                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', backgroundColor: '#f0fdf4', borderRadius: '10px', border: '1px solid #bbf7d0' }}>
+                                    <div
+                                        key={i}
+                                        onClick={() => setSelectedCompletedLesson(cl)}
+                                        style={{
+                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                            padding: '0.875rem 1.25rem', backgroundColor: '#f0fdf4', borderRadius: '10px',
+                                            border: '1px solid #bbf7d0', cursor: 'pointer', transition: 'all 0.2s'
+                                        }}
+                                        onMouseEnter={e => {
+                                            e.currentTarget.style.backgroundColor = '#dcfce7';
+                                            e.currentTarget.style.borderColor = '#10b981';
+                                            e.currentTarget.style.transform = 'translateX(4px)';
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.currentTarget.style.backgroundColor = '#f0fdf4';
+                                            e.currentTarget.style.borderColor = '#bbf7d0';
+                                            e.currentTarget.style.transform = 'translateX(0)';
+                                        }}
+                                    >
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                             <CheckCircle2 size={20} color="#10b981" />
-                                            <span style={{ fontWeight: '600' }}>{cl.lesson?.title || 'Bài học'}</span>
+                                            <div>
+                                                <div style={{ fontWeight: '600' }}>{cl.lesson?.title || 'Bài học'}</div>
+                                                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '1px' }}>Nhấn để xem chi tiết</div>
+                                            </div>
                                         </div>
-                                        <span style={{ color: '#6b7280', fontSize: '0.85rem' }}>{new Date(cl.completedAt).toLocaleDateString('vi-VN')}</span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            {cl.score != null && (
+                                                <span style={{ fontSize: '0.8rem', fontWeight: '700', color: cl.score >= 70 ? '#10b981' : '#ef4444', backgroundColor: cl.score >= 70 ? '#f0fdf4' : '#fef2f2', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
+                                                    {cl.score}%
+                                                </span>
+                                            )}
+                                            <span style={{ color: '#6b7280', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>{new Date(cl.completedAt).toLocaleDateString('vi-VN')}</span>
+                                            <span style={{ color: '#10b981', opacity: 0.6 }}>›</span>
+                                        </div>
                                     </div>
                                 ))
                             ) : (
@@ -525,6 +556,93 @@ const Dashboard = () => {
                             )}
                         </div>
                         <button onClick={() => setShowCompletedModal(false)} className="btn btn-primary" style={{ marginTop: '1.5rem' }}>Đóng</button>
+                    </div>
+                </div>
+            )}
+
+            {/* ===== MODAL Chi tiết bài học (Dashboard) ===== */}
+            {selectedCompletedLesson && (
+                <div
+                    onClick={() => setSelectedCompletedLesson(null)}
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 60, backdropFilter: 'blur(4px)' }}
+                >
+                    <div
+                        onClick={e => e.stopPropagation()}
+                        style={{ backgroundColor: 'white', borderRadius: '20px', padding: '0', width: '500px', maxWidth: '94%', boxShadow: '0 30px 60px rgba(0,0,0,0.2)', overflow: 'hidden', animation: 'fadeInUp 0.25s ease' }}
+                    >
+                        {/* Header */}
+                        <div style={{ background: 'linear-gradient(135deg, #4a90e2 0%, #6c63ff 100%)', padding: '1.5rem 2rem', color: 'white', position: 'relative' }}>
+                            <button onClick={() => setSelectedCompletedLesson(null)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,255,255,0.2)', border: 'none', cursor: 'pointer', color: 'white', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <X size={18} />
+                            </button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem', opacity: 0.85 }}>
+                                <BookOpen size={18} />
+                                <span style={{ fontSize: '0.82rem', fontWeight: '600' }}>Chi tiết bài học</span>
+                            </div>
+                            <h3 style={{ fontWeight: '800', fontSize: '1.2rem', margin: 0, lineHeight: 1.3 }}>
+                                {selectedCompletedLesson.lesson?.title || 'Bài học đã hoàn thành'}
+                            </h3>
+                        </div>
+
+                        {/* Body */}
+                        <div style={{ padding: '1.5rem 2rem' }}>
+                            {/* Ngày giờ */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', padding: '0.75rem 1rem', backgroundColor: '#f8fafc', borderRadius: '10px' }}>
+                                <Clock size={16} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                                <div>
+                                    <div style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ngày hoàn thành</div>
+                                    <div style={{ fontSize: '0.9rem', fontWeight: '700', color: '#1f2937' }}>
+                                        {new Date(selectedCompletedLesson.completedAt).toLocaleString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Stats */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.6rem', marginBottom: '1.25rem' }}>
+                                <div style={{ padding: '0.875rem 0.5rem', backgroundColor: 'rgba(74,144,226,0.07)', borderRadius: '12px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#4a90e2' }}>{selectedCompletedLesson.score ?? '—'}%</div>
+                                    <div style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: '600', marginTop: '2px' }}>Số điểm</div>
+                                </div>
+                                <div style={{ padding: '0.875rem 0.5rem', backgroundColor: 'rgba(16,185,129,0.07)', borderRadius: '12px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#10b981' }}>{selectedCompletedLesson.correctAnswers ?? '—'}</div>
+                                    <div style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: '600', marginTop: '2px' }}>Câu đúng</div>
+                                </div>
+                                <div style={{ padding: '0.875rem 0.5rem', backgroundColor: 'rgba(239,68,68,0.07)', borderRadius: '12px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#ef4444' }}>{selectedCompletedLesson.wrongAnswers ?? '—'}</div>
+                                    <div style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: '600', marginTop: '2px' }}>Câu sai</div>
+                                </div>
+                                <div style={{ padding: '0.875rem 0.5rem', backgroundColor: 'rgba(245,158,11,0.07)', borderRadius: '12px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#f59e0b' }}>{selectedCompletedLesson.totalQuestions ?? '—'}</div>
+                                    <div style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: '600', marginTop: '2px' }}>Tổng câu</div>
+                                </div>
+                            </div>
+
+                            {/* Progress bar */}
+                            {selectedCompletedLesson.totalQuestions > 0 && (
+                                <div style={{ marginBottom: '1.25rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#6b7280', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                        <span>Tỷ lệ đúng</span>
+                                        <span style={{ color: selectedCompletedLesson.score >= 70 ? '#10b981' : '#ef4444' }}>{selectedCompletedLesson.score}%</span>
+                                    </div>
+                                    <div style={{ height: '8px', backgroundColor: '#e5e7eb', borderRadius: '99px', overflow: 'hidden' }}>
+                                        <div style={{ height: '100%', width: `${selectedCompletedLesson.score}%`, backgroundColor: selectedCompletedLesson.score >= 70 ? '#10b981' : '#ef4444', borderRadius: '99px', transition: 'width 0.6s ease' }} />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Đánh giá */}
+                            {selectedCompletedLesson.totalQuestions > 0 && (
+                                <div style={{ padding: '0.75rem 1rem', borderRadius: '10px', marginBottom: '1.25rem', backgroundColor: selectedCompletedLesson.score >= 70 ? '#ecfdf5' : '#fef2f2', color: selectedCompletedLesson.score >= 70 ? '#047857' : '#b91c1c', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '700', fontSize: '0.9rem' }}>
+                                    {selectedCompletedLesson.score >= 70
+                                        ? <><CheckCircle2 size={18} /> Xuất sắc! Bạn đã nắm vững bài học này.</>
+                                        : <><HelpCircle size={18} /> Cần cố gắng thêm. Hãy xem lại bài học nhé!</>}
+                                </div>
+                            )}
+
+                            <button onClick={() => setSelectedCompletedLesson(null)} className="btn btn-primary" style={{ width: '100%', padding: '0.875rem', borderRadius: '12px', fontWeight: '700', fontSize: '1rem' }}>
+                                Đóng
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

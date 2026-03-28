@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Award, Camera, Save, ChevronLeft, CheckCircle2, X, Lock } from 'lucide-react';
+import { User, Mail, Phone, Award, Camera, Save, ChevronLeft, CheckCircle2, X, Lock, BookOpen, HelpCircle, Zap, Clock, Tag, Eye, EyeOff } from 'lucide-react';
 import api from '../api/axios';
 
 const AVATAR_PRESETS = [
@@ -33,10 +33,20 @@ const Profile = () => {
     const [pwForm, setPwForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
     const [pwLoading, setPwLoading] = useState(false);
     const [pwMsg, setPwMsg] = useState('');
+    const [showPw, setShowPw] = useState({ old: false, new: false, confirm: false });
 
     // Modal 10: Cập nhật Avatar
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [selectedPresetAvatar, setSelectedPresetAvatar] = useState('');
+
+    // Modal chi tiết bài học đã hoàn thành
+    const [showLessonDetailModal, setShowLessonDetailModal] = useState(false);
+    const [selectedLesson, setSelectedLesson] = useState(null);
+
+    const handleViewLessonDetail = (item) => {
+        setSelectedLesson(item);
+        setShowLessonDetailModal(true);
+    };
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -320,12 +330,47 @@ const Profile = () => {
                     <div className="glass-card" style={{ padding: '2.5rem' }}>
                         <h3 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Lịch sử bài học</h3>
                         {user.completedLessons && user.completedLessons.length > 0 ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 {user.completedLessons.map((item, index) => (
-                                    <div key={index} style={{ padding: '1rem', border: '1px solid var(--gray-100)', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div style={{ fontWeight: '600' }}>{item.lesson?.title || 'Bài học đã học'}</div>
-                                        <div style={{ fontSize: '0.85rem', color: 'var(--gray-500)' }}>
-                                            {new Date(item.completedAt).toLocaleDateString('vi-VN')}
+                                    <div
+                                        key={index}
+                                        onClick={() => handleViewLessonDetail(item)}
+                                        style={{
+                                            padding: '1rem 1.25rem',
+                                            border: '1px solid var(--gray-100)',
+                                            borderRadius: '12px',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease',
+                                            backgroundColor: 'white',
+                                        }}
+                                        onMouseEnter={e => {
+                                            e.currentTarget.style.backgroundColor = 'rgba(74,144,226,0.06)';
+                                            e.currentTarget.style.borderColor = 'var(--primary)';
+                                            e.currentTarget.style.transform = 'translateX(4px)';
+                                        }}
+                                        onMouseLeave={e => {
+                                            e.currentTarget.style.backgroundColor = 'white';
+                                            e.currentTarget.style.borderColor = 'var(--gray-100)';
+                                            e.currentTarget.style.transform = 'translateX(0)';
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                                <CheckCircle2 size={18} style={{ color: 'var(--success)' }} />
+                                            </div>
+                                            <div>
+                                                <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{item.lesson?.title || 'Bài học đã học'}</div>
+                                                <div style={{ fontSize: '0.78rem', color: 'var(--gray-500)', marginTop: '2px' }}>Nhấn để xem chi tiết</div>
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            <div style={{ fontSize: '0.82rem', color: 'var(--gray-500)', whiteSpace: 'nowrap' }}>
+                                                {new Date(item.completedAt).toLocaleDateString('vi-VN')}
+                                            </div>
+                                            <div style={{ color: 'var(--primary)', opacity: 0.5 }}>›</div>
                                         </div>
                                     </div>
                                 ))}
@@ -357,15 +402,48 @@ const Profile = () => {
                         <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <div className="input-group">
                                 <label>Mật khẩu cũ</label>
-                                <input type="password" value={pwForm.oldPassword} onChange={(e) => setPwForm({ ...pwForm, oldPassword: e.target.value })} required />
+                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                    <input
+                                        type={showPw.old ? 'text' : 'password'}
+                                        value={pwForm.oldPassword}
+                                        onChange={(e) => setPwForm({ ...pwForm, oldPassword: e.target.value })}
+                                        required
+                                        style={{ paddingRight: '3rem', width: '100%' }}
+                                    />
+                                    <button type="button" onClick={() => setShowPw(p => ({ ...p, old: !p.old }))} style={{ position: 'absolute', right: '0.875rem', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', display: 'flex', padding: 0 }}>
+                                        {showPw.old ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
                             </div>
                             <div className="input-group">
                                 <label>Mật khẩu mới</label>
-                                <input type="password" value={pwForm.newPassword} onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })} required />
+                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                    <input
+                                        type={showPw.new ? 'text' : 'password'}
+                                        value={pwForm.newPassword}
+                                        onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })}
+                                        required
+                                        style={{ paddingRight: '3rem', width: '100%' }}
+                                    />
+                                    <button type="button" onClick={() => setShowPw(p => ({ ...p, new: !p.new }))} style={{ position: 'absolute', right: '0.875rem', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', display: 'flex', padding: 0 }}>
+                                        {showPw.new ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
                             </div>
                             <div className="input-group">
                                 <label>Xác nhận mật khẩu mới</label>
-                                <input type="password" value={pwForm.confirmPassword} onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })} required />
+                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                    <input
+                                        type={showPw.confirm ? 'text' : 'password'}
+                                        value={pwForm.confirmPassword}
+                                        onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })}
+                                        required
+                                        style={{ paddingRight: '3rem', width: '100%' }}
+                                    />
+                                    <button type="button" onClick={() => setShowPw(p => ({ ...p, confirm: !p.confirm }))} style={{ position: 'absolute', right: '0.875rem', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', display: 'flex', padding: 0 }}>
+                                        {showPw.confirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
                             </div>
                             <button type="submit" className="btn btn-primary" disabled={pwLoading}>
                                 {pwLoading ? 'Đang xử lý...' : 'Cập nhật mật khẩu'}
@@ -392,6 +470,133 @@ const Profile = () => {
                         <div style={{ display: 'flex', gap: '1rem' }}>
                             <button onClick={() => setShowAvatarModal(false)} style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: 'white', fontWeight: '600', cursor: 'pointer' }}>Hủy</button>
                             <button onClick={handleApplyPresetAvatar} className="btn btn-primary" style={{ flex: 1 }} disabled={!selectedPresetAvatar}>Áp dụng</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ===== MODAL Chi tiết bài học ===== */}
+            {showLessonDetailModal && selectedLesson && (
+                <div
+                    onClick={() => setShowLessonDetailModal(false)}
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.55)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 60, backdropFilter: 'blur(4px)' }}
+                >
+                    <div
+                        onClick={e => e.stopPropagation()}
+                        style={{ backgroundColor: 'white', borderRadius: '20px', padding: '0', width: '500px', maxWidth: '94%', boxShadow: '0 30px 60px rgba(0,0,0,0.2)', position: 'relative', overflow: 'hidden', animation: 'fadeInUp 0.25s ease' }}
+                    >
+                        {/* Header gradient */}
+                        <div style={{ background: 'linear-gradient(135deg, #4a90e2 0%, #6c63ff 100%)', padding: '1.5rem 2rem', color: 'white', position: 'relative' }}>
+                            <button
+                                onClick={() => setShowLessonDetailModal(false)}
+                                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,255,255,0.2)', border: 'none', cursor: 'pointer', color: 'white', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                <X size={18} />
+                            </button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem', opacity: 0.85 }}>
+                                <BookOpen size={18} />
+                                <span style={{ fontSize: '0.82rem', fontWeight: '600' }}>Chi tiết bài học</span>
+                            </div>
+                            <h3 style={{ fontWeight: '800', fontSize: '1.25rem', lineHeight: 1.3, margin: 0 }}>
+                                {selectedLesson.lesson?.title || 'Bài học đã hoàn thành'}
+                            </h3>
+                        </div>
+
+                        {/* Body */}
+                        <div style={{ padding: '1.5rem 2rem' }}>
+
+                            {/* Ngày giờ */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', padding: '0.75rem 1rem', backgroundColor: '#f8fafc', borderRadius: '10px' }}>
+                                <Clock size={16} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                                <div>
+                                    <div style={{ fontSize: '0.72rem', color: 'var(--gray-500)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ngày hoàn thành</div>
+                                    <div style={{ fontSize: '0.9rem', fontWeight: '700', color: '#1f2937' }}>
+                                        {new Date(selectedLesson.completedAt).toLocaleString('vi-VN', {
+                                            weekday: 'long',
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Stats điểm số */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.6rem', marginBottom: '1.25rem' }}>
+                                <div style={{ padding: '0.875rem 0.5rem', backgroundColor: 'rgba(74,144,226,0.07)', borderRadius: '12px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: '900', color: 'var(--primary)' }}>
+                                        {selectedLesson.score ?? '—'}%
+                                    </div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--gray-500)', fontWeight: '600', marginTop: '2px' }}>Số điểm</div>
+                                </div>
+                                <div style={{ padding: '0.875rem 0.5rem', backgroundColor: 'rgba(16,185,129,0.07)', borderRadius: '12px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#10b981' }}>
+                                        {selectedLesson.correctAnswers ?? '—'}
+                                    </div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--gray-500)', fontWeight: '600', marginTop: '2px' }}>Câu đúng</div>
+                                </div>
+                                <div style={{ padding: '0.875rem 0.5rem', backgroundColor: 'rgba(239,68,68,0.07)', borderRadius: '12px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#ef4444' }}>
+                                        {selectedLesson.wrongAnswers ?? '—'}
+                                    </div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--gray-500)', fontWeight: '600', marginTop: '2px' }}>Câu sai</div>
+                                </div>
+                                <div style={{ padding: '0.875rem 0.5rem', backgroundColor: 'rgba(245,158,11,0.07)', borderRadius: '12px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#f59e0b' }}>
+                                        {selectedLesson.totalQuestions ?? '—'}
+                                    </div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--gray-500)', fontWeight: '600', marginTop: '2px' }}>Tổng câu</div>
+                                </div>
+                            </div>
+
+                            {/* Progress bar */}
+                            {selectedLesson.totalQuestions > 0 && (
+                                <div style={{ marginBottom: '1.25rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--gray-500)', fontWeight: '600', marginBottom: '0.4rem' }}>
+                                        <span>Tỷ lệ đúng</span>
+                                        <span style={{ color: selectedLesson.score >= 70 ? '#10b981' : '#ef4444' }}>{selectedLesson.score}%</span>
+                                    </div>
+                                    <div style={{ height: '8px', backgroundColor: '#e5e7eb', borderRadius: '99px', overflow: 'hidden' }}>
+                                        <div style={{
+                                            height: '100%',
+                                            width: `${selectedLesson.score}%`,
+                                            backgroundColor: selectedLesson.score >= 70 ? '#10b981' : '#ef4444',
+                                            borderRadius: '99px',
+                                            transition: 'width 0.6s ease'
+                                        }} />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Kết quả đánh giá */}
+                            {selectedLesson.totalQuestions > 0 && (
+                                <div style={{
+                                    padding: '0.75rem 1rem',
+                                    borderRadius: '10px',
+                                    marginBottom: '1.25rem',
+                                    backgroundColor: selectedLesson.score >= 70 ? '#ecfdf5' : '#fef2f2',
+                                    color: selectedLesson.score >= 70 ? '#047857' : '#b91c1c',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    fontWeight: '700',
+                                    fontSize: '0.9rem'
+                                }}>
+                                    {selectedLesson.score >= 70
+                                        ? <><CheckCircle2 size={18} /> Xuất sắc! Bạn đã nắm vững bài học này.</>
+                                        : <><HelpCircle size={18} /> Cần cố gắng thêm. Hãy xem lại bài học nhé!</>}
+                                </div>
+                            )}
+
+                            <button
+                                onClick={() => setShowLessonDetailModal(false)}
+                                className="btn btn-primary"
+                                style={{ width: '100%', padding: '0.875rem', borderRadius: '12px', fontWeight: '700', fontSize: '1rem' }}
+                            >
+                                Đóng
+                            </button>
                         </div>
                     </div>
                 </div>

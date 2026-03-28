@@ -11,6 +11,7 @@ import LessonDetail from './pages/LessonDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import AdminDashboard from './pages/AdminDashboard';
+import Battle from './pages/Battle';
 
 function App() {
   return (
@@ -60,6 +61,16 @@ function App() {
                 <ProtectedRoute>
                   <Navbar />
                   <LessonDetail />
+                  <Footer />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/battle"
+              element={
+                <ProtectedRoute>
+                  <Navbar />
+                  <Battle />
                   <Footer />
                 </ProtectedRoute>
               }

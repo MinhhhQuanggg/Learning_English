@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { LogOut, User, BookOpen, LayoutDashboard, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
+import { LogOut, User, BookOpen, LayoutDashboard, ZoomIn, ZoomOut, Maximize, Swords } from 'lucide-react';
 import oppIcon from '../assets/opportunity.png';
 
 const Navbar = () => {
@@ -93,6 +93,16 @@ const Navbar = () => {
                     }}>
                         <BookOpen size={18} /> Lộ trình
                     </Link>
+                    {/* <Link to="/battle" className="nav-link" style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        textDecoration: 'none',
+                        color: 'var(--gray-800)',
+                        fontWeight: '500'
+                    }}>
+                        <Swords size={18} /> Đấu 1vs1
+                    </Link> */}
                 </div>
 
                 <div style={{ height: '24px', width: '1px', backgroundColor: 'var(--gray-200)' }}></div>

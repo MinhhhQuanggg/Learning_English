@@ -6,7 +6,7 @@ const {
     updateVocabulary,
     deleteVocabulary
 } = require('../controllers/vocabularyController');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize } = require('../middlewares/auth');
 
 const router = express.Router();
 

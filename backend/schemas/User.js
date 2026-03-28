@@ -66,6 +66,22 @@ const userSchema = new mongoose.Schema(
                     type: Date,
                     default: Date.now,
                 },
+                score: {
+                    type: Number,
+                    default: 0,
+                },
+                correctAnswers: {
+                    type: Number,
+                    default: 0,
+                },
+                wrongAnswers: {
+                    type: Number,
+                    default: 0,
+                },
+                totalQuestions: {
+                    type: Number,
+                    default: 0,
+                },
             },
         ],
         role: {

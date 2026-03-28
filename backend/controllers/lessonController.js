@@ -95,7 +95,11 @@ exports.completeLesson = async (req, res) => {
             user.xp += lesson.xpAwarded || 10;
             user.completedLessons.push({
                 lesson: lesson._id,
-                completedAt: Date.now()
+                completedAt: Date.now(),
+                score: req.body.score || 0,
+                correctAnswers: req.body.correctAnswers || 0,
+                wrongAnswers: req.body.wrongAnswers || 0,
+                totalQuestions: req.body.totalQuestions || 0,
             });
             console.log('Lesson completed successfully, XP added.');
         } else {

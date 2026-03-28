@@ -1,4 +1,6 @@
 const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
@@ -10,6 +12,18 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const server = http.createServer(app);
+
+// Setup Socket.io
+const io = socketIo(server, {
+    cors: {
+        origin: 'http://localhost:5173', // Frontend URL
+        methods: ['GET', 'POST']
+    }
+});
+
+// Import battle handler
+require('./socket/battleHandler')(io);
 
 const path = require('path');
 
@@ -32,6 +46,6 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

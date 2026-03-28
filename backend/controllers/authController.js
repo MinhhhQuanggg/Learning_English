@@ -194,11 +194,41 @@ exports.login = async (req, res) => {
 // @desc    Lấy thông tin người dùng hiện lưu trong token (tự động đăng nhập FE)
 // @route   GET /api/auth/me
 exports.getMe = async (req, res) => {
-    res.status(200).json({
-        success: true,
-        data: req.user
-    });
+    try {
+        // Lấy lại user từ DB để có thể cập nhật streak
+        const user = await User.findById(req.user.id).populate('completedLessons.lesson');
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+        }
+
+        // ===== Kiểm tra và reset streak nếu bỏ lỡ ngày =====
+        if (user.lastActiveDate && user.streak > 0) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const lastActive = new Date(user.lastActiveDate);
+            lastActive.setHours(0, 0, 0, 0);
+
+            const diffDays = Math.round((today - lastActive) / (1000 * 60 * 60 * 24));
+
+            // Nếu bỏ lỡ 2 ngày trở lên (ví dụ: hôm qua không học) → reset về 0
+            if (diffDays >= 2) {
+                user.streak = 0;
+                await user.save({ validateBeforeSave: false });
+                console.log(`[Streak Reset] User ${user.email}: bỏ lỡ ${diffDays} ngày → streak = 0`);
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            data: user
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
 };
+
 // @desc    Cập nhật thông tin cá nhân
 // @route   PUT /api/auth/update-profile
 exports.updateProfile = async (req, res) => {
@@ -326,6 +356,40 @@ exports.deleteUser = async (req, res) => {
         if (user.role === 'admin') return res.status(400).json({ success: false, message: 'Không thể xóa tài khoản admin' });
         await user.deleteOne();
         res.status(200).json({ success: true, data: {} });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+// @desc    Đổi mật khẩu
+// @route   PUT /api/auth/change-password
+exports.changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({ success: false, message: 'Vui lòng cung cấp mật khẩu cũ và mật khẩu mới' });
+        }
+
+        // Phải select lại password vì getMe không trả về trường password
+        const user = await User.findById(req.user.id).select('+password');
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+        }
+
+        // So sánh mật khẩu cũ với hash trong DB
+        const isMatch = await user.matchPassword(oldPassword);
+        if (!isMatch) {
+            return res.status(400).json({ success: false, message: 'Mật khẩu cũ không đúng' });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ success: false, message: 'Mật khẩu mới phải có ít nhất 6 ký tự' });
+        }
+
+        user.password = newPassword;
+        await user.save(); // pre-save hook sẽ tự hash mật khẩu mới
+
+        res.status(200).json({ success: true, message: 'Đổi mật khẩu thành công' });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }

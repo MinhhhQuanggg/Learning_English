@@ -15,6 +15,8 @@ const LessonDetail = () => {
     const [isCorrect, setIsCorrect] = useState(null);
     const [completed, setCompleted] = useState(false);
     const [xpAwarded, setXpAwarded] = useState(0);
+    const [correctCount, setCorrectCount] = useState(0);
+    const [wrongCount, setWrongCount] = useState(0);
 
     useEffect(() => {
         const fetchLesson = async () => {
@@ -63,11 +65,13 @@ const LessonDetail = () => {
 
         setIsCorrect(correct);
 
-        // Nếu trả lời đúng, tự động chuyển sang câu tiếp theo sau 1.5 giây
         if (correct) {
+            setCorrectCount(prev => prev + 1);
             setTimeout(() => {
-                nextStep(true); // Truyền flag để biết đây là auto-next
+                nextStep(true);
             }, 1500);
+        } else {
+            setWrongCount(prev => prev + 1);
         }
     };
 
@@ -89,8 +93,17 @@ const LessonDetail = () => {
                 if (completing || completed) return;
                 setCompleting(true);
                 try {
-                    const res = await api.post(`/lessons/${id}/complete`);
-                    setXpAwarded(res.data.xpAwarded);
+                    const totalQ = lesson.questions.length;
+                    const correct = correctCount;
+                    const wrong = wrongCount;
+                    const scoreVal = totalQ > 0 ? Math.round((correct / totalQ) * 100) : 0;
+                    const res = await api.post(`/lessons/${id}/complete`, {
+                        score: scoreVal,
+                        correctAnswers: correct,
+                        wrongAnswers: wrong,
+                        totalQuestions: totalQ,
+                    });
+                    setXpAwarded(res.data.xpAwarded || 0);
                     setCompleted(true);
                 } catch (err) {
                     console.error('Lỗi khi hoàn thành bài học', err);
@@ -488,21 +501,42 @@ const LessonDetail = () => {
             {/* ===== MODAL 11: K\u1ebft qu\u1ea3 b\u00e0i h\u1ecdc ===== */}
             {completed && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 60 }}>
-                    <div className="glass-card animate-fade-in" style={{ padding: '3.5rem 2.5rem', maxWidth: '520px', width: '92%', textAlign: 'center', borderRadius: '24px', boxShadow: '0 30px 60px rgba(0,0,0,0.25)' }}>
-                        <div style={{ width: '100px', height: '100px', backgroundColor: '#10b981', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem', boxShadow: '0 20px 40px rgba(16, 185, 129, 0.3)' }}>
-                            <CheckCircle2 size={56} />
+                    <div className="glass-card animate-fade-in" style={{ padding: '3rem 2.5rem', maxWidth: '520px', width: '92%', textAlign: 'center', borderRadius: '24px', boxShadow: '0 30px 60px rgba(0,0,0,0.25)' }}>
+                        <div style={{ width: '90px', height: '90px', backgroundColor: '#10b981', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.75rem', boxShadow: '0 20px 40px rgba(16, 185, 129, 0.3)' }}>
+                            <CheckCircle2 size={50} />
                         </div>
-                        <h2 style={{ fontSize: '2.2rem', fontWeight: '900', marginBottom: '0.75rem' }}>🎉 Tuyệt vời!</h2>
-                        <p style={{ color: 'var(--gray-500)', fontSize: '1.1rem', marginBottom: '2rem' }}>
+                        <h2 style={{ fontSize: '2rem', fontWeight: '900', marginBottom: '0.5rem' }}>🎉 Tuyệt vời!</h2>
+                        <p style={{ color: 'var(--gray-500)', fontSize: '1rem', marginBottom: '1.75rem' }}>
                             Bạn đã hoàn thành bài học <br /><strong style={{ color: '#1f2937' }}>{lesson.title}</strong>
                         </p>
-                        <div style={{ background: 'linear-gradient(135deg, var(--primary-light), #c7d2fe)', color: 'var(--primary)', padding: '1.5rem 2rem', borderRadius: '20px', display: 'inline-flex', alignItems: 'center', gap: '1rem', marginBottom: '2.5rem', boxShadow: '0 8px 20px rgba(74,144,226,0.15)' }}>
-                            <Zap size={36} />
-                            <div style={{ textAlign: 'left' }}>
-                                <div style={{ fontSize: '0.9rem', fontWeight: '600' }}>Kinh nghiệm nhận được</div>
-                                <div style={{ fontSize: '2.5rem', fontWeight: '900', lineHeight: 1 }}>+{xpAwarded} XP</div>
+
+                        {/* Stats row */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                            <div style={{ padding: '1rem', backgroundColor: 'rgba(16,185,129,0.08)', borderRadius: '14px' }}>
+                                <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#10b981' }}>{correctCount}</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--gray-500)', fontWeight: '600', marginTop: '2px' }}>Câu đúng</div>
+                            </div>
+                            <div style={{ padding: '1rem', backgroundColor: 'rgba(239,68,68,0.08)', borderRadius: '14px' }}>
+                                <div style={{ fontSize: '1.6rem', fontWeight: '900', color: '#ef4444' }}>{wrongCount}</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--gray-500)', fontWeight: '600', marginTop: '2px' }}>Câu sai</div>
+                            </div>
+                            <div style={{ padding: '1rem', backgroundColor: 'rgba(74,144,226,0.08)', borderRadius: '14px' }}>
+                                <div style={{ fontSize: '1.6rem', fontWeight: '900', color: 'var(--primary)' }}>
+                                    {lesson.questions.length > 0 ? Math.round((correctCount / lesson.questions.length) * 100) : 0}%
+                                </div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--gray-500)', fontWeight: '600', marginTop: '2px' }}>Tỷ lệ đúng</div>
                             </div>
                         </div>
+
+                        {/* XP banner */}
+                        <div style={{ background: 'linear-gradient(135deg, var(--primary-light), #c7d2fe)', color: 'var(--primary)', padding: '1.25rem 2rem', borderRadius: '16px', display: 'inline-flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem', boxShadow: '0 8px 20px rgba(74,144,226,0.15)', width: '100%', justifyContent: 'center' }}>
+                            <Zap size={30} />
+                            <div style={{ textAlign: 'left' }}>
+                                <div style={{ fontSize: '0.85rem', fontWeight: '600' }}>Kinh nghiệm nhận được</div>
+                                <div style={{ fontSize: '2rem', fontWeight: '900', lineHeight: 1 }}>+{xpAwarded} XP</div>
+                            </div>
+                        </div>
+
                         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                             <button onClick={() => navigate('/learning-path')} style={{ padding: '0.9rem 1.8rem', borderRadius: '14px', border: '2px solid var(--primary)', backgroundColor: 'white', color: 'var(--primary)', fontWeight: '700', cursor: 'pointer', fontSize: '1rem' }}>
                                 Lộ trình học
