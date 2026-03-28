@@ -2,6 +2,7 @@ const nodemailer = require('nodemailer');
 
 const sendEmail = async (options) => {
     if (!process.env.EMAIL_USER || process.env.EMAIL_USER === 'your_email@gmail.com') {
+        // Điền email của mình vào đây để nhận email
         console.log('\n--- EMAIL MOCK ---');
         console.log(`To: ${options.email}`);
         console.log(`Subject: ${options.subject}`);
