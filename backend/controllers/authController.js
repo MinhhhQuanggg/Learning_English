@@ -1,7 +1,8 @@
 const User = require('../schemas/User');
+const OTP = require('../schemas/OTP');
 const sendEmail = require('../utils/sendEmail');
 
-// @desc    Đăng ký người dùng mới (bao gồm mật khẩu xác nhận và level)
+// @desc    Đăng ký người dùng mới (chỉ tạo OTP, chưa lưu vào DB chính)
 // @route   POST /api/auth/register
 exports.register = async (req, res) => {
     try {
@@ -12,47 +13,55 @@ exports.register = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Mật khẩu xác nhận không khớp' });
         }
 
-        // Kiểm tra email đã tồn tại hay chưa
+        // Kiểm tra quy luật mật khẩu (chữ, số và độ dài >= 6)
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({ success: false, message: 'Mật khẩu phải có ít nhất 6 ký tự, bao gồm cả chữ và số' });
+        }
+
+        // Kiểm tra email đã tồn tại hay chưa trong DB chính
         const userExists = await User.findOne({ email });
         if (userExists) {
             return res.status(400).json({ success: false, message: 'Email đã được đăng ký' });
         }
 
+        // Kiểm tra xem đã có mã OTP nào đang gửi cho email này không
+        await OTP.deleteMany({ email }); // Xóa OTP cũ nếu có để tạo cái mới
+
         // Tạo mã xác nhận OTP (6 chữ số ngẫu nhiên)
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // Tạo user (lúc này chưa verify email)
-        const user = await User.create({
-            fullName,
+        // Lưu thông tin vào collection OTP tạm thời
+        await OTP.create({
             email,
-            password,
-            phone,
-            level,
-            verificationCode,
-            verificationCodeExpires: Date.now() + 10 * 60 * 1000, // Có hiệu lực trong 10 phút
+            otp: verificationCode,
+            userData: {
+                fullName,
+                email,
+                password, // Sẽ được hash bằng hook 'pre save' khi lưu vào collection User
+                phone,
+                level,
+                isEmailVerified: true // Đánh dấu sẵn để lúc lưu sang User là true luôn
+            }
         });
 
         // Gửi email xác nhận
         try {
-            const message = `Chào ${fullName},\n\nMã xác nhận tài khoản Learning English của bạn là: ${verificationCode}\nMã này có hiệu lực trong 10 phút.`;
+            const message = `Chào ${fullName},\n\nMã xác nhận tài khoản EngPath của bạn là: ${verificationCode}\nMã này có hiệu lực trong 10 phút.`;
 
             await sendEmail({
-                email: user.email,
-                subject: 'Mã xác nhận tài khoản Learning English',
+                email,
+                subject: 'Mã xác nhận tài khoản EngPath',
                 message,
             });
 
             res.status(200).json({
                 success: true,
-                message: 'Đăng ký thành công. Vui lòng kiểm tra email để nhận mã xác nhận.',
+                message: 'Thông tin hợp lệ. Vui lòng kiểm tra email để nhận mã xác nhận OTP.',
             });
         } catch (err) {
             console.error(err);
-            // Xóa code nếu lỗi gửi mail thất bại (tuỳ chọn)
-            user.verificationCode = undefined;
-            user.verificationCodeExpires = undefined;
-            await user.save({ validateBeforeSave: false });
-
+            await OTP.deleteMany({ email }); // Xóa nếu lỗi gửi mail thất bại
             return res.status(500).json({ success: false, message: 'Không thể gửi email xác nhận' });
         }
     } catch (error) {
@@ -60,37 +69,30 @@ exports.register = async (req, res) => {
     }
 };
 
-// @desc    Xác nhận email với mã OTP
+// @desc    Xác nhận email với mã OTP và lưu vào DB
 // @route   POST /api/auth/verify-email
 exports.verifyEmail = async (req, res) => {
     try {
         const { email, code } = req.body;
 
-        const user = await User.findOne({ email });
+        const otpRecord = await OTP.findOne({ email, otp: code });
 
-        if (!user) {
-            return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+        if (!otpRecord) {
+            return res.status(400).json({ success: false, message: 'Mã xác nhận không hợp lệ hoặc đã hết hạn' });
         }
 
-        if (user.isEmailVerified) {
-            return res.status(400).json({ success: false, message: 'Email đã được xác nhận trước đó' });
-        }
+        // Tạo user chính thức từ userData đã lưu tạm
+        const user = await User.create(otpRecord.userData);
 
-        if (user.verificationCode !== code) {
-            return res.status(400).json({ success: false, message: 'Mã xác nhận không hợp lệ' });
-        }
-
-        if (user.verificationCodeExpires < Date.now()) {
-            return res.status(400).json({ success: false, message: 'Mã xác nhận đã hết hạn. Vui lòng yêu cầu mã mới.' });
-        }
-
-        user.isEmailVerified = true;
-        user.verificationCode = undefined;
-        user.verificationCodeExpires = undefined;
-        await user.save();
+        // Xóa bản ghi OTP vì đã xác nhận xong
+        await OTP.deleteMany({ email });
 
         res.status(200).json({ success: true, message: 'Xác nhận email thành công. Bạn có thể đăng nhập ngay.' });
     } catch (error) {
+        // Xử lý lỗi unique (lỡ email đã được ai đó đăng ký trong lúc chờ)
+        if (error.code === 11000) {
+            return res.status(400).json({ success: false, message: 'Email này đã được đăng ký trước đó' });
+        }
         res.status(400).json({ success: false, message: error.message });
     }
 };
@@ -101,28 +103,31 @@ exports.resendOTP = async (req, res) => {
     try {
         const { email } = req.body;
 
-        const user = await User.findOne({ email });
-
-        if (!user) {
-            return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+        // Kiểm tra xem user đã tồn tại chưa
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({ success: false, message: 'Email đã được đăng ký và xác nhận' });
         }
 
-        if (user.isEmailVerified) {
-            return res.status(400).json({ success: false, message: 'Email đã được xác nhận trước đó' });
+        const otpRecord = await OTP.findOne({ email });
+        if (!otpRecord) {
+            return res.status(404).json({ success: false, message: 'Không tìm thấy yêu cầu đăng ký nào đang chờ. Vui lòng đăng ký lại.' });
         }
 
         // Tạo mã xác nhận OTP mới
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-        user.verificationCode = verificationCode;
-        user.verificationCodeExpires = Date.now() + 10 * 60 * 1000;
-        await user.save();
+
+        // Cập nhật lại OTP record
+        otpRecord.otp = verificationCode;
+        otpRecord.createdAt = Date.now(); // Reset lại thời gian hết hạn
+        await otpRecord.save();
 
         // Gửi email xác nhận
         try {
-            const message = `Chào ${user.fullName},\n\nMã xác nhận tài khoản Learning English MỚI của bạn là: ${verificationCode}\nMã này có hiệu lực trong 10 phút.`;
+            const message = `Chào ${otpRecord.userData.fullName},\n\nMã xác nhận tài khoản Learning English MỚI của bạn là: ${verificationCode}\nMã này có hiệu lực trong 10 phút.`;
 
             await sendEmail({
-                email: user.email,
+                email,
                 subject: 'Mã xác nhận tài khoản Learning English (Gửi lại)',
                 message,
             });

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, X, ShieldCheck, FileText } from 'lucide-react';
 import api from '../api/axios';
@@ -45,7 +45,39 @@ const Register = () => {
     const [otpCode, setOtpCode] = useState('');
     const [otpLoading, setOtpLoading] = useState(false);
     const [otpError, setOtpError] = useState('');
+    const [otpSuccess, setOtpSuccess] = useState('');
     const [registeredEmail, setRegisteredEmail] = useState('');
+    const [timer, setTimer] = useState(60);
+    const [canResend, setCanResend] = useState(false);
+
+    useEffect(() => {
+        let interval;
+        if (showOtpModal && timer > 0) {
+            interval = setInterval(() => {
+                setTimer((prev) => prev - 1);
+            }, 1000);
+        } else if (showOtpModal && timer <= 0) {
+            setCanResend(true);
+        }
+        return () => clearInterval(interval);
+    }, [showOtpModal, timer]);
+
+    const handleResendOtp = async () => {
+        if (!canResend) return;
+        setOtpError('');
+        setOtpSuccess('');
+        setOtpLoading(true);
+        try {
+            await api.post('/auth/resend-otp', { email: registeredEmail });
+            setOtpSuccess('Mã OTP mới đã được gửi vào email!');
+            setTimer(60);
+            setCanResend(false);
+        } catch (err) {
+            setOtpError(err.response?.data?.message || 'Không thể gửi lại mã. Vui lòng thử lại sau.');
+        } finally {
+            setOtpLoading(false);
+        }
+    };
 
     // Modal 15: Terms
     const [showTermsModal, setShowTermsModal] = useState(false);
@@ -62,6 +94,12 @@ const Register = () => {
         if (formData.password !== formData.passwordConfirm) {
             return setError('Mật khẩu xác nhận không khớp');
         }
+
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
+        if (!passwordRegex.test(formData.password)) {
+            return setError('Mật khẩu phải có ít nhất 6 ký tự, bao gồm cả chữ và số');
+        }
+
         if (!agreedTerms) {
             return setError('Bạn phải đồng ý với Điều khoản sử dụng để tiếp tục.');
         }
@@ -74,6 +112,10 @@ const Register = () => {
             // Mở Modal OTP (14) thay vì chuyển trang
             setTimeout(() => {
                 setShowOtpModal(true);
+                setTimer(60);
+                setCanResend(false);
+                setOtpSuccess('');
+                setOtpError('');
             }, 800);
         } catch (err) {
             setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.');
@@ -86,8 +128,9 @@ const Register = () => {
         e.preventDefault();
         setOtpLoading(true);
         setOtpError('');
+        setOtpSuccess('');
         try {
-            await api.post('/auth/verify-otp', { email: registeredEmail, otp: otpCode });
+            await api.post('/auth/verify-email', { email: registeredEmail, code: otpCode });
             setShowOtpModal(false);
             navigate('/login');
         } catch (err) {
@@ -183,33 +226,56 @@ const Register = () => {
             {/* ===== MODAL 14: Xác thực OTP ===== */}
             {showOtpModal && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.55)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50 }}>
-                    <div className="glass-card" style={{ padding: '2.5rem', width: '420px', maxWidth: '92%', textAlign: 'center', position: 'relative' }}>
+                    <div style={{ backgroundColor: 'white', padding: '2.5rem', width: '420px', maxWidth: '92%', textAlign: 'center', position: 'relative', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
                         <div style={{ width: '70px', height: '70px', backgroundColor: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-                            <ShieldCheck size={36} color="var(--primary)" />
+                            <ShieldCheck size={36} color="#3b82f6" />
                         </div>
-                        <h3 style={{ fontWeight: 'bold', fontSize: '1.4rem', marginBottom: '0.5rem' }}>Xác thực tài khoản</h3>
-                        <p style={{ color: 'var(--gray-500)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-                            Mã OTP đã được gửi tới <strong>{registeredEmail}</strong>. Vui lòng kiểm tra email và nhập mã bên dưới.
+                        <h3 style={{ fontWeight: 'bold', fontSize: '1.4rem', marginBottom: '0.5rem', color: '#111827' }}>Xác thực tài khoản</h3>
+                        <p style={{ color: '#4b5563', marginBottom: '1.5rem', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                            Mã OTP đã được gửi tới <strong style={{ color: '#111827' }}>{registeredEmail}</strong>.<br />Vui lòng kiểm tra email và nhập mã bên dưới.
                         </p>
                         {otpError && (
                             <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '0.6rem', borderRadius: '6px', marginBottom: '1rem', fontSize: '0.875rem' }}>
                                 {otpError}
                             </div>
                         )}
+                        {otpSuccess && (
+                            <div style={{ backgroundColor: '#ecfdf5', color: '#047857', padding: '0.6rem', borderRadius: '6px', marginBottom: '1rem', fontSize: '0.875rem' }}>
+                                {otpSuccess}
+                            </div>
+                        )}
                         <form onSubmit={handleVerifyOtp}>
                             <input
                                 type="text"
                                 value={otpCode}
-                                onChange={(e) => setOtpCode(e.target.value)}
+                                onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
                                 placeholder="Nhập mã OTP 6 chữ số"
                                 required
-                                maxLength={6}
-                                style={{ width: '100%', padding: '1rem', textAlign: 'center', fontSize: '1.5rem', letterSpacing: '0.5rem', fontWeight: 'bold', borderRadius: '12px', border: '2px solid #d1d5db', marginBottom: '1rem', outline: 'none', boxSizing: 'border-box' }}
+                                style={{ width: '100%', padding: '1rem', textAlign: 'center', fontSize: '1.25rem', fontWeight: 'bold', borderRadius: '12px', border: '2px solid #d1d5db', marginBottom: '1.25rem', outline: 'none', boxSizing: 'border-box', color: '#111827', backgroundColor: '#f9fafb' }}
                             />
-                            <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={otpLoading}>
-                                {otpLoading ? 'Đang xác thực...' : 'Xác nhận'}
+                            <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.75rem', fontSize: '1rem', fontWeight: '600', backgroundColor: '#3b82f6', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }} disabled={otpLoading}>
+                                {otpLoading ? 'Đang xác thực...' : 'Xác nhận OTP'}
                             </button>
                         </form>
+                        <p style={{ textAlign: 'center', marginTop: '1.25rem', fontSize: '0.9rem', color: '#4b5563' }}>
+                            {canResend ? (
+                                <>
+                                    Không nhận được mã?{' '}
+                                    <span
+                                        style={{ color: '#3b82f6', fontWeight: '600', cursor: 'pointer' }}
+                                        onClick={handleResendOtp}
+                                    >
+                                        Gửi lại mã
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    Gửi lại mã sau: <span style={{ color: '#3b82f6', fontWeight: '600' }}>
+                                        {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
+                                    </span>
+                                </>
+                            )}
+                        </p>
                     </div>
                 </div>
             )}

@@ -119,9 +119,14 @@ const Profile = () => {
         setPwMsg('');
         try {
             await api.put('/auth/change-password', { oldPassword: pwForm.oldPassword, newPassword: pwForm.newPassword });
-            setPwMsg('✅ Đổi mật khẩu thành công!');
+            setPwMsg('✅ Đổi mật khẩu thành công! Đang chuyển hướng...');
             setPwForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
-            setTimeout(() => setShowPasswordModal(false), 1500);
+            setTimeout(() => {
+                setShowPasswordModal(false);
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                navigate('/login');
+            }, 1500);
         } catch (err) {
             setPwMsg('❌ ' + (err.response?.data?.message || 'Mật khẩu cũ không đúng.'));
         } finally {
@@ -459,7 +464,24 @@ const Profile = () => {
                     <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '2rem', width: '500px', maxWidth: '92%', boxShadow: '0 25px 50px rgba(0,0,0,0.15)', position: 'relative' }}>
                         <button onClick={() => setShowAvatarModal(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={22} /></button>
                         <h3 style={{ fontWeight: 'bold', fontSize: '1.3rem', marginBottom: '0.5rem' }}>🖼️ Chọn ảnh đại diện</h3>
-                        <p style={{ color: 'var(--gray-500)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Chọn một avatar có sẵn bên dưới:</p>
+                        <p style={{ color: 'var(--gray-500)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>Tải ảnh lên từ thiết bị hoặc chọn avatar có sẵn:</p>
+
+                        {/* Nút Upload từ máy */}
+                        <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', backgroundColor: '#f8fafc', color: 'var(--primary)', borderRadius: '12px', fontWeight: '600', cursor: 'pointer', border: '2px dashed #cbd5e1', transition: 'all 0.2s', width: '100%' }}>
+                                <Camera size={20} /> Tải ảnh lên từ máy
+                                <input type="file" style={{ display: 'none' }} accept="image/*" onChange={(e) => {
+                                    handleAvatarChange(e);
+                                    setShowAvatarModal(false);
+                                }} />
+                            </label>
+                        </div>
+
+                        <div style={{ position: 'relative', textAlign: 'center', marginBottom: '1.5rem' }}>
+                            <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, borderTop: '1px solid #e5e7eb', zIndex: 1 }}></div>
+                            <span style={{ position: 'relative', zIndex: 2, backgroundColor: 'white', padding: '0 10px', fontSize: '0.85rem', color: '#9ca3af' }}>Hoặc chọn avatar có sẵn</span>
+                        </div>
+
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
                             {AVATAR_PRESETS.map((url, i) => (
                                 <div key={i} onClick={() => setSelectedPresetAvatar(url)} style={{ cursor: 'pointer', borderRadius: '12px', padding: '0.5rem', border: `3px solid ${selectedPresetAvatar === url ? 'var(--primary)' : '#e5e7eb'}`, transition: 'all 0.2s', display: 'flex', justifyContent: 'center', backgroundColor: selectedPresetAvatar === url ? 'var(--primary-light)' : 'white' }}>
