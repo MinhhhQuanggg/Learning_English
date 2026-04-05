@@ -5,6 +5,25 @@ import api from '../api/axios';
 import mascotImg from '../assets/mascot.png';
 import oppIcon from '../assets/opportunity.png';
 
+const DAILY_QUOTES = [
+    { en: "Design a life you love, not just a career.", vi: "Hãy thiết kế một cuộc đời bạn yêu thích, chứ không chỉ là một sự nghiệp." },
+    { en: "Collect moments, not things.", vi: "Hãy thu thập những khoảnh khắc, đừng chỉ thu thập vật chất." },
+    { en: "Slow down and enjoy the simple things.", vi: "Hãy sống chậm lại và tận hưởng những điều đơn giản nhất." },
+    { en: "Consistency is more important than intensity. 15 minutes every day is better than 3 hours once a week.", vi: "Sự kiên trì quan trọng hơn cường độ. 15 phút mỗi ngày tốt hơn 3 tiếng một lần mỗi tuần." },
+    { en: "Don't be afraid to make mistakes. Mistakes are the stepping stones to fluency.", vi: "Đừng sợ sai. Sai lầm chính là những bậc thềm dẫn đến sự lưu loát." },
+    { en: "Think in English. Try to describe your daily activities in your head using English.", vi: "Hãy tư duy bằng Tiếng Anh. Thử mô tả các hoạt động hàng ngày của bạn trong đầu bằng Tiếng Anh." },
+    { en: "Every expert was once a beginner.", vi: "Mọi chuyên gia đều từng là người mới bắt đầu." },
+    { en: "The secret of getting ahead is getting started.", vi: "Bí quyết để tiến xa là hãy bắt đầu ngay." },
+];
+
+const ENGLISH_TIPS = [
+    { title: "Học từ vựng theo ngữ cảnh", content: "Đừng học từ đơn lẻ. Hãy học từ trong câu hoặc đoạn văn để nhớ lâu hơn.", tag: "Từ vựng" },
+    { title: "Luyện nghe mỗi ngày", content: "Nghe podcast tiếng Anh 15 phút mỗi ngày giúp tai bạn quen với âm thanh tự nhiên.", tag: "Nghe" },
+    { title: "Nói to khi luyện tập", content: "Đọc to các câu tiếng Anh giúp não bộ ghi nhớ và luyện phản xạ ngôn ngữ nhanh hơn.", tag: "Nói" },
+    { title: "Viết nhật ký bằng tiếng Anh", content: "Dành 5 phút mỗi tối viết vài câu về ngày hôm đó để luyện kỹ năng viết tự nhiên.", tag: "Viết" },
+    { title: "Xem phim với phụ đề", content: "Bắt đầu với phụ đề tiếng Việt, sau đó chuyển sang phụ đề tiếng Anh để học cách dùng từ.", tag: "Nghe" },
+];
+
 const Dashboard = () => {
     const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
     const [loading, setLoading] = useState(true);
@@ -17,6 +36,11 @@ const Dashboard = () => {
     const [showCompletedModal, setShowCompletedModal] = useState(false);
     // Modal chi tiết bài học đã hoàn thành
     const [selectedCompletedLesson, setSelectedCompletedLesson] = useState(null);
+    // Right sidebar widgets
+    const [dailyQuote] = useState(() => DAILY_QUOTES[Math.floor(Math.random() * DAILY_QUOTES.length)]);
+    const [dailyTip] = useState(() => ENGLISH_TIPS[Math.floor(Math.random() * ENGLISH_TIPS.length)]);
+    const [wordsLearned] = useState(() => Math.floor(Math.random() * 8) + 1);
+    const dailyGoal = 10;
     const navigate = useNavigate();
 
     const fetchLeaderboardData = async (level) => {
@@ -249,7 +273,7 @@ const Dashboard = () => {
                 ))}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '2rem', alignItems: 'start' }}>
                 {/* Bài học đề xuất */}
                 <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
                     {/* Level Selector */}
@@ -497,6 +521,98 @@ const Dashboard = () => {
                             </button>
                         </div>
                     </div>
+                </div>
+
+                {/* ===== SIDEBAR WIDGETS (cột giữa) ===== */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+                    {/* Quote Card */}
+                    <div className="glass-card animate-fade-in" style={{
+                        padding: '1.75rem',
+                        background: 'linear-gradient(135deg, #fdf6ff 0%, #f0f4ff 100%)',
+                        border: '1px solid rgba(124, 58, 237, 0.1)',
+                        borderRadius: '20px',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        animationDelay: '0.5s'
+                    }}>
+                        <div style={{
+                            position: 'absolute', top: '-10px', left: '12px',
+                            fontSize: '5rem', color: 'rgba(124, 58, 237, 0.12)',
+                            fontFamily: 'Georgia, serif', lineHeight: 1, userSelect: 'none'
+                        }}>"</div>
+                        <p style={{
+                            fontStyle: 'italic', fontSize: '0.95rem', color: '#4c1d95',
+                            fontWeight: '600', lineHeight: '1.6', margin: '0 0 0.75rem',
+                            position: 'relative', zIndex: 1, paddingTop: '0.5rem'
+                        }}>"{dailyQuote.en}"</p>
+                        <p style={{
+                            fontSize: '0.8rem', color: '#7c3aed', lineHeight: '1.5',
+                            margin: 0, fontStyle: 'italic', opacity: 0.8
+                        }}>({dailyQuote.vi})</p>
+                        <div style={{
+                            display: 'flex', alignItems: 'center', gap: '0.4rem',
+                            marginTop: '1rem', paddingTop: '0.75rem',
+                            borderTop: '1px solid rgba(124,58,237,0.1)'
+                        }}>
+                            <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.05em' }}>✨ Quote of the Day</span>
+                        </div>
+                    </div>
+
+                    {/* Tip of the Day */}
+                    <div className="glass-card animate-fade-in" style={{
+                        padding: '1.5rem',
+                        borderRadius: '20px',
+                        border: '1px solid rgba(16,185,129,0.12)',
+                        background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+                        animationDelay: '0.6s'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <span style={{
+                                fontSize: '0.65rem', fontWeight: '800', textTransform: 'uppercase',
+                                letterSpacing: '0.08em', color: 'white', backgroundColor: '#10b981',
+                                padding: '0.2rem 0.6rem', borderRadius: '99px'
+                            }}>💡 English Tip</span>
+                            <span style={{
+                                fontSize: '0.65rem', fontWeight: '700', color: '#10b981',
+                                backgroundColor: 'rgba(16,185,129,0.1)', padding: '0.2rem 0.5rem', borderRadius: '99px'
+                            }}>{dailyTip.tag}</span>
+                        </div>
+                        <h4 style={{ fontSize: '0.95rem', fontWeight: '800', color: '#065f46', margin: '0 0 0.5rem' }}>
+                            {dailyTip.title}
+                        </h4>
+                        <p style={{ fontSize: '0.85rem', color: '#047857', lineHeight: '1.6', margin: '0 0 1rem' }}>
+                            {dailyTip.content}
+                        </p>
+                        <button
+                            onClick={() => navigate('/learning-path')}
+                            style={{
+                                fontSize: '0.8rem', fontWeight: '700', color: '#10b981',
+                                background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)',
+                                borderRadius: '10px', padding: '0.4rem 1rem', cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseOver={e => { e.target.style.background = '#10b981'; e.target.style.color = 'white'; }}
+                            onMouseOut={e => { e.target.style.background = 'rgba(16,185,129,0.1)'; e.target.style.color = '#10b981'; }}
+                        >
+                            Learn more →
+                        </button>
+                    </div>
+
+                    {/* Progress Tracker */}
+                    <div className="glass-card animate-fade-in" style={{
+                        padding: '1.5rem',
+                        borderRadius: '20px',
+                        border: '1px solid rgba(245,158,11,0.15)',
+                        background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+                        animationDelay: '0.7s',
+                        textAlign: 'center'
+                    }}>
+                        <p style={{ fontSize: '0.9rem', color: '#78350f', fontWeight: '700', margin: 0, lineHeight: '1.7' }}>
+                            📊 Mỗi ngày <span style={{ color: '#f59e0b', fontWeight: '900' }}>10 từ mới</span>. Hôm nay bạn đã đạt được mục tiêu chưa!
+                        </p>
+                    </div>
+
                 </div>
             </div>
 
