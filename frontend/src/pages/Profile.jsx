@@ -217,12 +217,12 @@ const Profile = () => {
                                 {formData.avatar ? (
                                     <img src={formData.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
-                                    <User size={80} style={{ color: 'var(--primary)' }} />
+                                    <User size={80} style={{ color: '#ef4444' }} />
                                 )}
                             </div>
                             <label
                                 onClick={() => setShowAvatarModal(true)}
-                                style={{ position: 'absolute', bottom: '5px', right: '5px', backgroundColor: 'var(--primary)', color: 'white', padding: '0.6rem', borderRadius: '50%', cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.2)', display: 'flex' }}
+                                style={{ position: 'absolute', bottom: '5px', right: '5px', background: 'linear-gradient(135deg, #ef4444, #f59e0b)', color: 'white', padding: '0.6rem', borderRadius: '50%', cursor: 'pointer', boxShadow: '0 4px 10px rgba(239, 68, 68, 0.3)', display: 'flex' }}
                             >
                                 <Camera size={18} />
                             </label>
@@ -230,23 +230,29 @@ const Profile = () => {
                         <h2 style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>{user.fullName}</h2>
                         <p style={{ color: 'var(--gray-500)', marginBottom: '2rem' }}>Học viên tại EngPath</p>
 
-                        <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.5rem', backgroundColor: 'rgba(74, 144, 226, 0.05)', borderRadius: '16px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                <Mail size={18} style={{ color: 'var(--primary)' }} />
+                        <div style={{ textAlign: 'left', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', padding: '1.5rem', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(245, 158, 11, 0.05))', borderRadius: '16px', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', gridColumn: 'span 2' }}>
+                                <div style={{ padding: '0.5rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: '10px', display: 'flex' }}>
+                                    <Mail size={18} style={{ color: '#ef4444' }} />
+                                </div>
                                 <div>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--gray-500)' }}>Email đăng ký</div>
                                     <div style={{ fontSize: '0.9rem', fontWeight: '600' }}>{user.email}</div>
                                 </div>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                <Phone size={18} style={{ color: 'var(--success)' }} />
+                                <div style={{ padding: '0.5rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', borderRadius: '10px', display: 'flex' }}>
+                                    <Phone size={18} style={{ color: '#f59e0b' }} />
+                                </div>
                                 <div>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--gray-500)' }}>Số điện thoại</div>
                                     <div style={{ fontSize: '0.9rem', fontWeight: '600' }}>{user.phone}</div>
                                 </div>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                <Award size={18} style={{ color: 'var(--secondary)' }} />
+                                <div style={{ padding: '0.5rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: '10px', display: 'flex' }}>
+                                    <Award size={18} style={{ color: '#ef4444' }} />
+                                </div>
                                 <div>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--gray-500)' }}>Trình độ hiện tại</div>
                                     <div style={{ fontSize: '0.9rem', fontWeight: '600' }}>{user.level}</div>
@@ -316,15 +322,15 @@ const Profile = () => {
                                 <button
                                     type="button"
                                     onClick={() => { setShowPasswordModal(true); setPwMsg(''); }}
-                                    style={{ padding: '0.75rem 1.5rem', borderRadius: '16px', border: '2px solid var(--primary)', backgroundColor: 'white', color: 'var(--primary)', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                    style={{ padding: '0.75rem 1.5rem', borderRadius: '16px', border: '2px solid #ef4444', backgroundColor: 'white', color: '#ef4444', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                                 >
                                     <Lock size={18} /> Đổi mật khẩu
                                 </button>
                                 <button
-                                    className="btn btn-primary"
+                                    className="btn"
                                     type="submit"
                                     disabled={saving}
-                                    style={{ padding: '1rem 3rem', borderRadius: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: 'auto' }}
+                                    style={{ padding: '1rem 3rem', borderRadius: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: 'auto', background: 'linear-gradient(135deg, #ef4444, #f59e0b)', color: 'white', border: 'none', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)' }}
                                 >
                                     {saving ? 'Đang lưu...' : <><Save size={20} /> Lưu thay đổi</>}
                                 </button>
@@ -352,8 +358,8 @@ const Profile = () => {
                                             backgroundColor: 'white',
                                         }}
                                         onMouseEnter={e => {
-                                            e.currentTarget.style.backgroundColor = 'rgba(74,144,226,0.06)';
-                                            e.currentTarget.style.borderColor = 'var(--primary)';
+                                            e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.05)';
+                                            e.currentTarget.style.borderColor = '#ef4444';
                                             e.currentTarget.style.transform = 'translateX(4px)';
                                         }}
                                         onMouseLeave={e => {
@@ -375,7 +381,7 @@ const Profile = () => {
                                             <div style={{ fontSize: '0.82rem', color: 'var(--gray-500)', whiteSpace: 'nowrap' }}>
                                                 {new Date(item.completedAt).toLocaleDateString('vi-VN')}
                                             </div>
-                                            <div style={{ color: 'var(--primary)', opacity: 0.5 }}>›</div>
+                                            <div style={{ color: '#ef4444', opacity: 0.5 }}>›</div>
                                         </div>
                                     </div>
                                 ))}
@@ -395,8 +401,8 @@ const Profile = () => {
                     <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '2rem', width: '440px', maxWidth: '92%', boxShadow: '0 25px 50px rgba(0,0,0,0.15)', position: 'relative' }}>
                         <button onClick={() => setShowPasswordModal(false)} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={22} /></button>
                         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                            <div style={{ width: '60px', height: '60px', backgroundColor: '#eff6ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
-                                <Lock size={28} color="var(--primary)" />
+                            <div style={{ width: '60px', height: '60px', backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+                                <Lock size={28} color="#ef4444" />
                             </div>
                             <h3 style={{ fontWeight: 'bold', fontSize: '1.3rem', marginBottom: '0.25rem' }}>Đổi mật khẩu</h3>
                             <p style={{ color: 'var(--gray-500)', fontSize: '0.9rem' }}>Nhập mật khẩu cũ và mật khẩu mới của bạn.</p>
@@ -484,14 +490,14 @@ const Profile = () => {
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
                             {AVATAR_PRESETS.map((url, i) => (
-                                <div key={i} onClick={() => setSelectedPresetAvatar(url)} style={{ cursor: 'pointer', borderRadius: '12px', padding: '0.5rem', border: `3px solid ${selectedPresetAvatar === url ? 'var(--primary)' : '#e5e7eb'}`, transition: 'all 0.2s', display: 'flex', justifyContent: 'center', backgroundColor: selectedPresetAvatar === url ? 'var(--primary-light)' : 'white' }}>
+                                <div key={i} onClick={() => setSelectedPresetAvatar(url)} style={{ cursor: 'pointer', borderRadius: '12px', padding: '0.5rem', border: `3px solid ${selectedPresetAvatar === url ? '#ef4444' : '#e5e7eb'}`, transition: 'all 0.2s', display: 'flex', justifyContent: 'center', backgroundColor: selectedPresetAvatar === url ? 'rgba(239,68,68,0.1)' : 'white' }}>
                                     <img src={url} alt="Avatar" style={{ width: '80px', height: '80px', borderRadius: '50%' }} />
                                 </div>
                             ))}
                         </div>
                         <div style={{ display: 'flex', gap: '1rem' }}>
                             <button onClick={() => setShowAvatarModal(false)} style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: 'white', fontWeight: '600', cursor: 'pointer' }}>Hủy</button>
-                            <button onClick={handleApplyPresetAvatar} className="btn btn-primary" style={{ flex: 1 }} disabled={!selectedPresetAvatar}>Áp dụng</button>
+                            <button onClick={handleApplyPresetAvatar} className="btn" style={{ flex: 1, background: 'linear-gradient(135deg, #ef4444, #f59e0b)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', padding: '0.75rem' }} disabled={!selectedPresetAvatar}>Áp dụng</button>
                         </div>
                     </div>
                 </div>
@@ -508,7 +514,7 @@ const Profile = () => {
                         style={{ backgroundColor: 'white', borderRadius: '20px', padding: '0', width: '500px', maxWidth: '94%', boxShadow: '0 30px 60px rgba(0,0,0,0.2)', position: 'relative', overflow: 'hidden', animation: 'fadeInUp 0.25s ease' }}
                     >
                         {/* Header gradient */}
-                        <div style={{ background: 'linear-gradient(135deg, #4a90e2 0%, #6c63ff 100%)', padding: '1.5rem 2rem', color: 'white', position: 'relative' }}>
+                        <div style={{ background: 'linear-gradient(135deg, #ef4444 0%, #f59e0b 100%)', padding: '1.5rem 2rem', color: 'white', position: 'relative' }}>
                             <button
                                 onClick={() => setShowLessonDetailModal(false)}
                                 style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(255,255,255,0.2)', border: 'none', cursor: 'pointer', color: 'white', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -529,7 +535,7 @@ const Profile = () => {
 
                             {/* Ngày giờ */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', padding: '0.75rem 1rem', backgroundColor: '#f8fafc', borderRadius: '10px' }}>
-                                <Clock size={16} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                                <Clock size={16} style={{ color: '#ef4444', flexShrink: 0 }} />
                                 <div>
                                     <div style={{ fontSize: '0.72rem', color: 'var(--gray-500)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ngày hoàn thành</div>
                                     <div style={{ fontSize: '0.9rem', fontWeight: '700', color: '#1f2937' }}>
@@ -548,7 +554,7 @@ const Profile = () => {
                             {/* Stats điểm số */}
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.6rem', marginBottom: '1.25rem' }}>
                                 <div style={{ padding: '0.875rem 0.5rem', backgroundColor: 'rgba(74,144,226,0.07)', borderRadius: '12px', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: '900', color: 'var(--primary)' }}>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: '900', color: '#ef4444' }}>
                                         {selectedLesson.score ?? '—'}%
                                     </div>
                                     <div style={{ fontSize: '0.7rem', color: 'var(--gray-500)', fontWeight: '600', marginTop: '2px' }}>Số điểm</div>
