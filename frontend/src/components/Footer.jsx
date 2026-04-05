@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail, MessageCircle, Facebook, Users } from 'lucide-react';
+import { Mail, MessageCircle, Facebook, Users, MapPin } from 'lucide-react';
 
 const Footer = () => {
     return (
@@ -48,14 +48,25 @@ const Footer = () => {
                             </a>
                         </li>
                         <li style={{ marginBottom: '1rem' }}>
+                            <a href="mailto:nguyentruowngsonpq2004@gmail.com" className="footer-link">
+                                <Mail size={18} /> nguyentruowngsonpq2004@gmail.com
+                            </a>
+                        </li>
+                        <li style={{ marginBottom: '1rem' }}>
                             <a href="https://m.me/engpath" target="_blank" rel="noreferrer" className="footer-link">
                                 <MessageCircle size={18} /> Nhắn tin cho EngPath
                             </a>
                         </li>
-                        <li>
+                        <li style={{ marginBottom: '1rem' }}>
                             <a href="tel:0868410577" className="footer-link">
                                 <span style={{ fontWeight: 'bold' }}>SĐT:</span> 0868410577
                             </a>
+                        </li>
+                        <li>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: 'rgba(255, 255, 255, 0.9)', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#ffffff'} onMouseLeave={e => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.9)'}>
+                                <MapPin size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                                <span><span style={{ fontWeight: 'bold' }}>Địa chỉ trụ sở:</span> Tam Bình, Thủ đức, TP.Hồ Chí Minh</span>
+                            </div>
                         </li>
                     </ul>
                 </div>
