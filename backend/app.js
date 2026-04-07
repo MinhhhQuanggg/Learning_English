@@ -11,6 +11,20 @@ dotenv.config();
 // Connect to database
 connectDB();
 
+// Register all models explicitly to avoid populate errors
+require('./schemas/Role');
+require('./schemas/User');
+require('./schemas/Category');
+require('./schemas/Lesson');
+require('./schemas/Question');
+require('./schemas/Vocabulary');
+require('./schemas/OTP');
+require('./schemas/Comment');
+require('./schemas/Feedback');
+require('./schemas/SavedVocabulary');
+require('./schemas/DailyTask');
+require('./schemas/Achievement');
+
 const app = express();
 const server = http.createServer(app);
 
@@ -39,6 +53,10 @@ app.use('/api/lessons', require('./routes/lessonRoutes'));
 app.use('/api/categories', require('./routes/categoryRoutes'));
 app.use('/api/questions', require('./routes/questionRoutes'));
 app.use('/api/vocabulary', require('./routes/vocabularyRoutes'));
+app.use('/api/comments', require('./routes/commentRoutes'));
+app.use('/api/feedback', require('./routes/feedbackRoutes'));
+app.use('/api/saved-vocab', require('./routes/savedVocabRoutes'));
+app.use('/api/gamification', require('./routes/gamificationRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Learning English API is running...');

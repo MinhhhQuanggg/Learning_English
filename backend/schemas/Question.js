@@ -8,8 +8,8 @@ const questionSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['multiple_choice', 'fill_blank', 'sort_sentence', 'writing', 'reading_passage', 'true_false'],
-        default: 'multiple_choice'
+        enum: ['Trắc nghiệm', 'Điền từ', 'Sắp xếp câu', 'Viết luận', 'Đọc hiểu', 'Đúng/Sai'],
+        default: 'Trắc nghiệm'
     },
     level: {
         type: String,
@@ -18,8 +18,8 @@ const questionSchema = new mongoose.Schema({
     question: { type: String, required: true },
     mediaUrl: { type: String }, // Cho audio hoặc hình ảnh phụ trợ
     passage: { type: String }, // Đoạn văn bản dài cho đọc hiểu
-    options: [{ type: String }], // Dùng cho multiple_choice, sort_sentence, true_false
-    correctAnswer: { type: String, required: true }, // Index hoặc text, hoặc array text (cho sort_sentence) nối bằng dấu phẩy
+    options: [{ type: String }], // Dùng cho Trắc nghiệm, Sắp xếp câu, Đúng/Sai
+    correctAnswer: { type: String, required: true }, // Index hoặc text, hoặc array text (cho Sắp xếp câu) nối bằng dấu phẩy
     explanation: { type: String }
 }, {
     timestamps: true

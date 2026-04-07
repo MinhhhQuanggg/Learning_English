@@ -2,6 +2,8 @@ const Lesson = require('../schemas/Lesson');
 const Question = require('../schemas/Question');
 const User = require('../schemas/User');
 const Category = require('../schemas/Category');
+const Vocabulary = require('../schemas/Vocabulary');
+const { updateTaskProgress } = require('../utils/dailyTaskHelper');
 
 // @desc    Lấy danh sách tất cả bài học (có thể lọc theo trình độ)
 // @route   GET /api/lessons
@@ -10,7 +12,9 @@ exports.getLessons = async (req, res) => {
         let queryObj = {};
 
         // Admin xem toàn bộ bài học, không filter theo isActive hay level
-        if (req.user && req.user.role === 'admin' && req.query.admin === 'true') {
+        const isAdmin = req.user && req.user.role && (req.user.role === 'admin' || req.user.role.roleName === 'admin');
+
+        if (isAdmin && req.query.admin === 'true') {
             // Empty queryObj means get all
         } else {
             queryObj.isActive = true;
@@ -25,7 +29,7 @@ exports.getLessons = async (req, res) => {
             queryObj.categoryId = req.query.categoryId;
         }
 
-        const lessons = await Lesson.find(queryObj).sort('order').populate('categoryId', 'name');
+        const lessons = await Lesson.find(queryObj).sort({ order: 1, createdAt: 1 }).populate('categoryId', 'name');
 
         res.status(200).json({
             success: true,
@@ -86,27 +90,26 @@ exports.completeLesson = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
         }
 
-        // Kiểm tra xem bài học đã hoàn thành chưa
-        const isAlreadyCompleted = user.completedLessons && user.completedLessons.some(
-            (cl) => cl.lesson && cl.lesson.toString() === lesson._id.toString()
-        );
+        // Tính toán XP dựa trên số câu đúng (5 XP mỗi câu)
+        const correctAnswers = req.body.correctAnswers || 0;
+        const earnedXp = correctAnswers * 5;
 
-        if (!isAlreadyCompleted) {
-            user.xp += lesson.xpAwarded || 10;
-            user.completedLessons.push({
-                lesson: lesson._id,
-                completedAt: Date.now(),
-                score: req.body.score || 0,
-                correctAnswers: req.body.correctAnswers || 0,
-                wrongAnswers: req.body.wrongAnswers || 0,
-                totalQuestions: req.body.totalQuestions || 0,
-            });
-            console.log('Lesson completed successfully, XP added.');
-        } else {
-            console.log('Lesson already completed before.');
-        }
+        // Cộng XP trực tiếp (Hệ thống mới: Đúng bao nhiêu cộng bấy nhiêu, kể cả khi học lại)
+        user.xp += earnedXp;
 
-        // Xử lý chuỗi ngày (streak) - Tính cả khi học lại
+        // Lưu lịch sử bài học
+        user.completedLessons.push({
+            lesson: lesson._id,
+            completedAt: Date.now(),
+            score: req.body.score || 0,
+            correctAnswers,
+            wrongAnswers: req.body.wrongAnswers || 0,
+            totalQuestions: req.body.totalQuestions || 0,
+        });
+
+        console.log(`Lesson completed: +${earnedXp} XP added to User ${user._id}`);
+
+        // Xử lý chuỗi ngày (streak)
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -129,12 +132,18 @@ exports.completeLesson = async (req, res) => {
             }
         }
 
+        // Cập nhật tiến độ nhiệm vụ hàng ngày
+        await updateTaskProgress(user._id, 'Hoàn thành 1 bài học bất kỳ');
+        if (req.body.score === 100) {
+            await updateTaskProgress(user._id, 'Đạt điểm tối đa (100%) cho 1 bài học');
+        }
+
         await user.save();
 
         res.status(200).json({
             success: true,
-            message: isAlreadyCompleted ? 'Bài học đã ghi nhận trước đó' : 'Chúc mừng! Bạn đã hoàn thành bài học',
-            xpAwarded: isAlreadyCompleted ? 0 : lesson.xpAwarded,
+            message: 'Chúc mừng! Bạn đã hoàn thành bài học',
+            xpAwarded: earnedXp,
             totalXp: user.xp
         });
     } catch (error) {

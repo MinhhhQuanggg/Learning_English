@@ -85,9 +85,9 @@ const userSchema = new mongoose.Schema(
             },
         ],
         role: {
-            type: String,
-            enum: ['user', 'admin'],
-            default: 'user',
+            type: Number,
+            ref: 'Role',
+            default: 2, // Mặc định là 'user'
         },
     },
     {
