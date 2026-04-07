@@ -32,16 +32,16 @@ const lessons = [
             </ul>
         `,
         questions: [
-            { type: 'reading_passage', passage: 'Hello, my name is John. I am 20 years old.\nI live in London and I love eating pizza.', question: 'Where does John live?', options: ['London', 'Paris', 'Hanoi', 'New York'], correctAnswer: 'London', explanation: 'He says: "I live in London".' },
-            { type: 'fill_blank', question: 'Từ tiếng Anh mang nghĩa số Không là ___ (cố lên)', correctAnswer: 'Zero', explanation: 'Zero nghĩa là số 0.' },
-            { type: 'sort_sentence', question: 'Sắp xếp câu: "Một Hai Ba"', options: ['Two', 'Three', 'One'], correctAnswer: 'One,Two,Three', explanation: 'Thứ tự đúng là One, Two, Three.' },
-            { type: 'multiple_choice', question: 'Từ nào nghĩa là "Xin chào"?', options: ['Goodbye', 'Hello', 'Thanks', 'Sorry'], correctAnswer: 'Hello', explanation: 'Hello là xin chào.' },
-            { type: 'writing', question: 'Viết từ tiếng Anh tương đương với số Mười:', correctAnswer: 'Ten', explanation: 'Ten là số mười.' },
-            { type: 'multiple_choice', question: 'Số 5 trong tiếng Anh là gì?', options: ['Six', 'Five', 'Seven', 'Eight'], correctAnswer: 'Five', explanation: 'Five nghĩa là số năm.' },
-            { type: 'fill_blank', question: 'Số 8 trong tiếng Anh là? (Viết tiếng Anh)', correctAnswer: 'Eight', explanation: 'Eight nghĩa là số tám.' },
-            { type: 'sort_sentence', question: 'Sắp xếp câu: "Năm Sáu Bảy"', options: ['Seven', 'Five', 'Six'], correctAnswer: 'Five,Six,Seven', explanation: 'Thứ tự đúng là Five, Six, Seven.' },
-            { type: 'multiple_choice', question: 'Từ nào dùng để cảm ơn?', options: ['Thank you', 'Please', 'Excuse me', 'Hello'], correctAnswer: 'Thank you', explanation: 'Thank you dùng để bày tỏ sự biết ơn.' },
-            { type: 'writing', question: 'Dịch "Tạm biệt" sang tiếng Anh:', correctAnswer: 'Goodbye', explanation: 'Goodbye dùng khi chào tạm biệt.' }
+            { type: 'Đọc hiểu', passage: 'Hello, my name is John. I am 20 years old.\nI live in London and I love eating pizza.', question: 'Where does John live?', options: ['London', 'Paris', 'Hanoi', 'New York'], correctAnswer: 'London', explanation: 'He says: "I live in London".' },
+            { type: 'Điền từ', question: 'Từ tiếng Anh mang nghĩa số Không là ___ (cố lên)', correctAnswer: 'Zero', explanation: 'Zero nghĩa là số 0.' },
+            { type: 'Sắp xếp câu', question: 'Sắp xếp câu: "Một Hai Ba"', options: ['Two', 'Three', 'One'], correctAnswer: 'One,Two,Three', explanation: 'Thứ tự đúng là One, Two, Three.' },
+            { type: 'Trắc nghiệm', question: 'Từ nào nghĩa là "Xin chào"?', options: ['Goodbye', 'Hello', 'Thanks', 'Sorry'], correctAnswer: 'Hello', explanation: 'Hello là xin chào.' },
+            { type: 'Viết luận', question: 'Viết từ tiếng Anh tương đương với số Mười:', correctAnswer: 'Ten', explanation: 'Ten là số mười.' },
+            { type: 'Trắc nghiệm', question: 'Số 5 trong tiếng Anh là gì?', options: ['Six', 'Five', 'Seven', 'Eight'], correctAnswer: 'Five', explanation: 'Five nghĩa là số năm.' },
+            { type: 'Điền từ', question: 'Số 8 trong tiếng Anh là? (Viết tiếng Anh)', correctAnswer: 'Eight', explanation: 'Eight nghĩa là số tám.' },
+            { type: 'Sắp xếp câu', question: 'Sắp xếp câu: "Năm Sáu Bảy"', options: ['Seven', 'Five', 'Six'], correctAnswer: 'Five,Six,Seven', explanation: 'Thứ tự đúng là Five, Six, Seven.' },
+            { type: 'Trắc nghiệm', question: 'Từ nào dùng để cảm ơn?', options: ['Thank you', 'Please', 'Excuse me', 'Hello'], correctAnswer: 'Thank you', explanation: 'Thank you dùng để bày tỏ sự biết ơn.' },
+            { type: 'Viết luận', question: 'Dịch "Tạm biệt" sang tiếng Anh:', correctAnswer: 'Goodbye', explanation: 'Goodbye dùng khi chào tạm biệt.' }
         ]
     },
     {
@@ -57,16 +57,16 @@ const lessons = [
             <p>Nghe đoạn hội thoại và điền từ hoặc sắp xếp từ thích hợp.</p>
         `,
         questions: [
-            { type: 'true_false', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Người trong Audio vừa nói "Hello", đúng hay sai?', correctAnswer: 'True', explanation: 'Audio rõ ràng phát ra tiếng Hello.' },
-            { type: 'fill_blank', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Tên bạn là gì trong tiếng Anh: What is ___ name?', correctAnswer: 'your', explanation: 'Your name = tên của bạn.' },
-            { type: 'sort_sentence', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Sắp xếp câu giới thiệu đến từ Việt Nam:', options: ['Vietnam', 'I', 'from', 'am'], correctAnswer: 'I,am,from,Vietnam', explanation: 'I am from Vietnam.' },
-            { type: 'writing', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Dịch câu "Rất vui được gặp bạn" sang tiếng Anh:', correctAnswer: 'Nice to meet you', explanation: 'Nice to meet you là câu dùng khi mới quen ai đó.' },
-            { type: 'multiple_choice', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Câu trả lời cho "How old are you?"', options: ['I am fine', 'I am 20 years old', 'My name is Peter', 'Yes, I am'], correctAnswer: 'I am 20 years old', explanation: 'Hỏi tuổi dùng I am + số.' },
-            { type: 'fill_blank', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: '"I ___ a student." Điền từ còn thiếu?', correctAnswer: 'am', explanation: 'Chủ ngữ I đi với am.' },
-            { type: 'multiple_choice', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Câu hỏi "Ai đây?" trong tiếng Anh?', options: ['Who are you?', 'How are you?', 'What is your name?', 'Where are you?'], correctAnswer: 'Who are you?', explanation: 'Đây là câu hỏi người.' },
-            { type: 'sort_sentence', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Sắp xếp câu: "Tôi 20 tuổi"', options: ['years', 'old', '20', 'I', 'am'], correctAnswer: 'I,am,20,years,old', explanation: 'I am 20 years old.' },
-            { type: 'writing', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Ghi lại dạng viết tắt của "I am"', correctAnswer: "I'm", explanation: "I'm là dạng viết tắt của I am." },
-            { type: 'true_false', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Câu hỏi "Where are you from?" dùng để hỏi Tuổi, đúng hay sai?', correctAnswer: 'False', explanation: 'Where dùng để hỏi nơi chốn (Từ đâu đến).' }
+            { type: 'Đúng/Sai', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Người trong Audio vừa nói "Hello", đúng hay sai?', correctAnswer: 'True', explanation: 'Audio rõ ràng phát ra tiếng Hello.' },
+            { type: 'Điền từ', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Tên bạn là gì trong tiếng Anh: What is ___ name?', correctAnswer: 'your', explanation: 'Your name = tên của bạn.' },
+            { type: 'Sắp xếp câu', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Sắp xếp câu giới thiệu đến từ Việt Nam:', options: ['Vietnam', 'I', 'from', 'am'], correctAnswer: 'I,am,from,Vietnam', explanation: 'I am from Vietnam.' },
+            { type: 'Viết luận', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Dịch câu "Rất vui được gặp bạn" sang tiếng Anh:', correctAnswer: 'Nice to meet you', explanation: 'Nice to meet you là câu dùng khi mới quen ai đó.' },
+            { type: 'Trắc nghiệm', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Câu trả lời cho "How old are you?"', options: ['I am fine', 'I am 20 years old', 'My name is Peter', 'Yes, I am'], correctAnswer: 'I am 20 years old', explanation: 'Hỏi tuổi dùng I am + số.' },
+            { type: 'Điền từ', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: '"I ___ a student." Điền từ còn thiếu?', correctAnswer: 'am', explanation: 'Chủ ngữ I đi với am.' },
+            { type: 'Trắc nghiệm', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Câu hỏi "Ai đây?" trong tiếng Anh?', options: ['Who are you?', 'How are you?', 'What is your name?', 'Where are you?'], correctAnswer: 'Who are you?', explanation: 'Đây là câu hỏi người.' },
+            { type: 'Sắp xếp câu', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Sắp xếp câu: "Tôi 20 tuổi"', options: ['years', 'old', '20', 'I', 'am'], correctAnswer: 'I,am,20,years,old', explanation: 'I am 20 years old.' },
+            { type: 'Viết luận', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Ghi lại dạng viết tắt của "I am"', correctAnswer: "I'm", explanation: "I'm là dạng viết tắt của I am." },
+            { type: 'Đúng/Sai', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Câu hỏi "Where are you from?" dùng để hỏi Tuổi, đúng hay sai?', correctAnswer: 'False', explanation: 'Where dùng để hỏi nơi chốn (Từ đâu đến).' }
         ]
     },
     {
@@ -82,16 +82,16 @@ const lessons = [
             <p>Nghe và chọn hoặc viết lại câu chính xác về thói quen diễn ra ở hiện tại.</p>
         `,
         questions: [
-            { type: 'multiple_choice', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Người nói có thể đang chia động từ ở ngôi thứ mấy?', options: ['Ngôi 1', 'Ngôi 2', 'Ngôi 3'], correctAnswer: 'Ngôi 1', explanation: 'Ví dụ nghe.' },
-            { type: 'fill_blank', question: 'She ___ a doctor.', correctAnswer: 'is', explanation: 'She đi với is.' },
-            { type: 'multiple_choice', question: 'They ___ football every Sunday.', options: ['play', 'plays', 'playing', 'played'], correctAnswer: 'play', explanation: 'Số nhiều dùng play.' },
-            { type: 'sort_sentence', question: 'Sắp xếp câu:', options: ['like', 'apples', 'I', 'do', 'not'], correctAnswer: 'I,do,not,like,apples', explanation: 'I do not like apples.' },
-            { type: 'fill_blank', question: '___ he speak English? (Viết hoa chữ đầu)', correctAnswer: 'Does', explanation: 'He dùng Does.' },
-            { type: 'writing', question: 'Chuyển câu "Tôi là học sinh" sang tiếng Anh', correctAnswer: 'I am a student', explanation: 'I am a student.' },
-            { type: 'multiple_choice', question: 'We ___ students.', options: ['am', 'is', 'are', 'be'], correctAnswer: 'are', explanation: 'We đi với are.' },
-            { type: 'fill_blank', question: 'He ___ to school by bus. (Động từ GO)', correctAnswer: 'goes', explanation: 'He + V(es) vì tận cùng là o.' },
-            { type: 'sort_sentence', question: 'Sắp xếp câu: "Con mèo thích cá"', options: ['like', 'Cats', 'fish'], correctAnswer: 'Cats,like,fish', explanation: 'Chủ ngữ danh từ số nhiều.' },
-            { type: 'writing', question: 'Does she ___ coffee? (Động từ LIKE)', correctAnswer: 'like', explanation: 'Sau trợ động từ Does, động từ về nguyên mẫu.' }
+            { type: 'Trắc nghiệm', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Người nói có thể đang chia động từ ở ngôi thứ mấy?', options: ['Ngôi 1', 'Ngôi 2', 'Ngôi 3'], correctAnswer: 'Ngôi 1', explanation: 'Ví dụ nghe.' },
+            { type: 'Điền từ', question: 'She ___ a doctor.', correctAnswer: 'is', explanation: 'She đi với is.' },
+            { type: 'Trắc nghiệm', question: 'They ___ football every Sunday.', options: ['play', 'plays', 'playing', 'played'], correctAnswer: 'play', explanation: 'Số nhiều dùng play.' },
+            { type: 'Sắp xếp câu', question: 'Sắp xếp câu:', options: ['like', 'apples', 'I', 'do', 'not'], correctAnswer: 'I,do,not,like,apples', explanation: 'I do not like apples.' },
+            { type: 'Điền từ', question: '___ he speak English? (Viết hoa chữ đầu)', correctAnswer: 'Does', explanation: 'He dùng Does.' },
+            { type: 'Viết luận', question: 'Chuyển câu "Tôi là học sinh" sang tiếng Anh', correctAnswer: 'I am a student', explanation: 'I am a student.' },
+            { type: 'Trắc nghiệm', question: 'We ___ students.', options: ['am', 'is', 'are', 'be'], correctAnswer: 'are', explanation: 'We đi với are.' },
+            { type: 'Điền từ', question: 'He ___ to school by bus. (Động từ GO)', correctAnswer: 'goes', explanation: 'He + V(es) vì tận cùng là o.' },
+            { type: 'Sắp xếp câu', question: 'Sắp xếp câu: "Con mèo thích cá"', options: ['like', 'Cats', 'fish'], correctAnswer: 'Cats,like,fish', explanation: 'Chủ ngữ danh từ số nhiều.' },
+            { type: 'Viết luận', question: 'Does she ___ coffee? (Động từ LIKE)', correctAnswer: 'like', explanation: 'Sau trợ động từ Does, động từ về nguyên mẫu.' }
         ]
     },
     {
@@ -107,16 +107,16 @@ const lessons = [
             <p>Manager, Colleague, Deadline...</p>
         `,
         questions: [
-            { type: 'multiple_choice', question: 'Ai là người quản lý?', options: ['Manager', 'Staff', 'Intern', 'Client'], correctAnswer: 'Manager', explanation: 'Manager là quản lý.' },
-            { type: 'fill_blank', question: 'Thời hạn cuối cùng để hoàn thành công việc là gì?', correctAnswer: 'Deadline', explanation: 'Deadline là hạn chót.' },
-            { type: 'sort_sentence', question: 'Sắp xêp câu:', options: ['a', 'have', 'I', 'meeting'], correctAnswer: 'I,have,a,meeting', explanation: 'I have a meeting.' },
-            { type: 'writing', question: 'Từ "Tiền lương" trong tiếng Anh là gì?', correctAnswer: 'Salary', explanation: 'Salary là lương.' },
-            { type: 'multiple_choice', question: '"Apply ___ a job". Điền giới từ?', options: ['for', 'to', 'with', 'in'], correctAnswer: 'for', explanation: 'Apply for something.' },
-            { type: 'multiple_choice', question: '"Colleague" nghĩa là gì?', options: ['Bạn thân', 'Đồng nghiệp', 'Đối thủ', 'Khách hàng'], correctAnswer: 'Đồng nghiệp', explanation: 'Đồng nghiệp cùng công ty.' },
-            { type: 'fill_blank', question: '"Overtime" nghĩa là gì?', correctAnswer: 'Làm thêm giờ', explanation: 'Overtime là làm thêm giờ.' },
-            { type: 'writing', question: 'Tên tiếng Anh của từ "Sơ yếu lý lịch" là gì?', correctAnswer: 'Resume', explanation: 'Resume là hồ sơ/sơ yếu lý lịch.' },
-            { type: 'sort_sentence', question: 'Sắp xếp câu: "Tôi là nhân viên"', options: ['an', 'am', 'I', 'employee'], correctAnswer: 'I,am,an,employee', explanation: 'I am an employee.' },
-            { type: 'multiple_choice', question: 'Ai là người mua hàng?', options: ['Boss', 'Employee', 'Customer', 'Partner'], correctAnswer: 'Customer', explanation: 'Khách hàng là Customer.' }
+            { type: 'Trắc nghiệm', question: 'Ai là người quản lý?', options: ['Manager', 'Staff', 'Intern', 'Client'], correctAnswer: 'Manager', explanation: 'Manager là quản lý.' },
+            { type: 'Điền từ', question: 'Thời hạn cuối cùng để hoàn thành công việc là gì?', correctAnswer: 'Deadline', explanation: 'Deadline là hạn chót.' },
+            { type: 'Sắp xếp câu', question: 'Sắp xêp câu:', options: ['a', 'have', 'I', 'meeting'], correctAnswer: 'I,have,a,meeting', explanation: 'I have a meeting.' },
+            { type: 'Viết luận', question: 'Từ "Tiền lương" trong tiếng Anh là gì?', correctAnswer: 'Salary', explanation: 'Salary là lương.' },
+            { type: 'Trắc nghiệm', question: '"Apply ___ a job". Điền giới từ?', options: ['for', 'to', 'with', 'in'], correctAnswer: 'for', explanation: 'Apply for something.' },
+            { type: 'Trắc nghiệm', question: '"Colleague" nghĩa là gì?', options: ['Bạn thân', 'Đồng nghiệp', 'Đối thủ', 'Khách hàng'], correctAnswer: 'Đồng nghiệp', explanation: 'Đồng nghiệp cùng công ty.' },
+            { type: 'Điền từ', question: '"Overtime" nghĩa là gì?', correctAnswer: 'Làm thêm giờ', explanation: 'Overtime là làm thêm giờ.' },
+            { type: 'Viết luận', question: 'Tên tiếng Anh của từ "Sơ yếu lý lịch" là gì?', correctAnswer: 'Resume', explanation: 'Resume là hồ sơ/sơ yếu lý lịch.' },
+            { type: 'Sắp xếp câu', question: 'Sắp xếp câu: "Tôi là nhân viên"', options: ['an', 'am', 'I', 'employee'], correctAnswer: 'I,am,an,employee', explanation: 'I am an employee.' },
+            { type: 'Trắc nghiệm', question: 'Ai là người mua hàng?', options: ['Boss', 'Employee', 'Customer', 'Partner'], correctAnswer: 'Customer', explanation: 'Khách hàng là Customer.' }
         ]
     },
     {
@@ -132,16 +132,16 @@ const lessons = [
             <p>Nghe Audio và chọn đáp án đúng để hoàn thành câu Điều kiện.</p>
         `,
         questions: [
-            { type: 'multiple_choice', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Lắng nghe và chọn. Anh ta nói gì?', options: ['Hello', 'Hi', 'How are you'], correctAnswer: 'Hello', explanation: 'Âm thanh phát ra tiếng Hello.' },
-            { type: 'fill_blank', question: 'If it rains, we ___ at home.', correctAnswer: 'will stay', explanation: 'Loại 1 (có thể xảy ra).' },
-            { type: 'sort_sentence', question: 'Sắp xếp câu loại 2:', options: ['were', 'would', 'I', 'If', 'you', 'study'], correctAnswer: 'If,I,were,you,I,would,study', explanation: 'If I were you I would study.' },
-            { type: 'writing', question: 'Dịch "Nếu tôi có tiền, tôi sẽ mua xe bus":', correctAnswer: 'If I had money, I would buy a bus', explanation: 'Điều kiện loại 2 giả định trái hiện tại.' },
-            { type: 'multiple_choice', question: 'I would buy a car if I ___ enough money.', options: ['have', 'has', 'had', 'will have'], correctAnswer: 'had', explanation: 'Vế If của loại 2 dùng quá khứ đơn.' },
-            { type: 'fill_blank', question: 'If they ___ (phủ định, hiện tại) hurry, they will miss the train.', correctAnswer: 'do not', explanation: 'Phủ định hiện tại đơn đi với they.' },
-            { type: 'multiple_choice', question: 'If she ___ time, she will visit us.', options: ['has', 'have', 'had', 'will have'], correctAnswer: 'has', explanation: 'Vế If dùng hiện tại đơn (Loại 1).' },
-            { type: 'sort_sentence', question: 'Sắp xếp: "Bạn sẽ làm gì nếu bạn trúng số?"', options: ['won', 'you', 'do', 'if', 'the', 'lottery', 'would', 'What', 'you'], correctAnswer: 'What,would,you,do,if,you,won,the,lottery', explanation: 'Sắp xếp từ thành câu hỏi loại 2.' },
-            { type: 'fill_blank', question: 'If you eat too much, you ___ weight.', correctAnswer: 'will gain', explanation: 'Câu điều kiện loại 1.' },
-            { type: 'writing', question: 'Ghi lại giới từ "cho tất cả các ngôi" của To be ở Điều kiện loại 2:', correctAnswer: 'were', explanation: 'To be luôn là were.' }
+            { type: 'Trắc nghiệm', mediaUrl: 'http://localhost:5000/public/uploads/hello.mp3', question: 'Lắng nghe và chọn. Anh ta nói gì?', options: ['Hello', 'Hi', 'How are you'], correctAnswer: 'Hello', explanation: 'Âm thanh phát ra tiếng Hello.' },
+            { type: 'Điền từ', question: 'If it rains, we ___ at home.', correctAnswer: 'will stay', explanation: 'Loại 1 (có thể xảy ra).' },
+            { type: 'Sắp xếp câu', question: 'Sắp xếp câu loại 2:', options: ['were', 'would', 'I', 'If', 'you', 'study'], correctAnswer: 'If,I,were,you,I,would,study', explanation: 'If I were you I would study.' },
+            { type: 'Viết luận', question: 'Dịch "Nếu tôi có tiền, tôi sẽ mua xe bus":', correctAnswer: 'If I had money, I would buy a bus', explanation: 'Điều kiện loại 2 giả định trái hiện tại.' },
+            { type: 'Trắc nghiệm', question: 'I would buy a car if I ___ enough money.', options: ['have', 'has', 'had', 'will have'], correctAnswer: 'had', explanation: 'Vế If của loại 2 dùng quá khứ đơn.' },
+            { type: 'Điền từ', question: 'If they ___ (phủ định, hiện tại) hurry, they will miss the train.', correctAnswer: 'do not', explanation: 'Phủ định hiện tại đơn đi với they.' },
+            { type: 'Trắc nghiệm', question: 'If she ___ time, she will visit us.', options: ['has', 'have', 'had', 'will have'], correctAnswer: 'has', explanation: 'Vế If dùng hiện tại đơn (Loại 1).' },
+            { type: 'Sắp xếp câu', question: 'Sắp xếp: "Bạn sẽ làm gì nếu bạn trúng số?"', options: ['won', 'you', 'do', 'if', 'the', 'lottery', 'would', 'What', 'you'], correctAnswer: 'What,would,you,do,if,you,won,the,lottery', explanation: 'Sắp xếp từ thành câu hỏi loại 2.' },
+            { type: 'Điền từ', question: 'If you eat too much, you ___ weight.', correctAnswer: 'will gain', explanation: 'Câu điều kiện loại 1.' },
+            { type: 'Viết luận', question: 'Ghi lại giới từ "cho tất cả các ngôi" của To be ở Điều kiện loại 2:', correctAnswer: 'were', explanation: 'To be luôn là were.' }
         ]
     },
     {
