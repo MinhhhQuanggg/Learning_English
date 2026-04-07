@@ -4,7 +4,6 @@ const categorySchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, 'Vui lòng nhập tên danh mục'],
-        enum: ['Reading', 'Listening', 'Writing']
     },
     description: {
         type: String,

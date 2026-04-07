@@ -1,6 +1,7 @@
 const User = require('../schemas/User');
 const OTP = require('../schemas/OTP');
 const sendEmail = require('../utils/sendEmail');
+const { checkAndGenerateDailyTasks } = require('../utils/dailyTaskHelper');
 
 // @desc    Đăng ký người dùng mới (chỉ tạo OTP, chưa lưu vào DB chính)
 // @route   POST /api/auth/register
@@ -41,7 +42,8 @@ exports.register = async (req, res) => {
                 password, // Sẽ được hash bằng hook 'pre save' khi lưu vào collection User
                 phone,
                 level,
-                isEmailVerified: true // Đánh dấu sẵn để lúc lưu sang User là true luôn
+                isEmailVerified: true, // Đánh dấu sẵn để lúc lưu sang User là true luôn
+                role: 2 // Gán mặc định là User
             }
         });
 
@@ -156,7 +158,7 @@ exports.login = async (req, res) => {
         }
 
         // Do password được select: false (nếu có config) hoặc ta cứ tìm nó
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email }).populate('role');
 
         if (!user) {
             return res.status(401).json({ success: false, message: 'Thông tin đăng nhập không hợp lệ' });
@@ -185,7 +187,7 @@ exports.login = async (req, res) => {
                 fullName: user.fullName,
                 email: user.email,
                 level: user.level,
-                role: user.role,
+                role: user.role && user.role.roleName ? user.role.roleName : 'user',
                 streak: user.streak,
                 xp: user.xp,
                 avatar: user.avatar
@@ -201,11 +203,14 @@ exports.login = async (req, res) => {
 exports.getMe = async (req, res) => {
     try {
         // Lấy lại user từ DB để có thể cập nhật streak
-        const user = await User.findById(req.user.id).populate('completedLessons.lesson');
+        const user = await User.findById(req.user.id).populate('completedLessons.lesson').populate('role');
 
         if (!user) {
             return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
         }
+
+        // Tự động kiểm tra và tạo nhiệm vụ hàng ngày
+        await checkAndGenerateDailyTasks(user._id);
 
         // ===== Kiểm tra và reset streak nếu bỏ lỡ ngày =====
         if (user.lastActiveDate && user.streak > 0) {
@@ -225,9 +230,16 @@ exports.getMe = async (req, res) => {
             }
         }
 
+        const userObj = user.toObject();
+        if (userObj.role && userObj.role.roleName) {
+            userObj.role = userObj.role.roleName;
+        } else if (!userObj.role) {
+            userObj.role = 'user'; // Mặc định nếu chưa có role reference
+        }
+
         res.status(200).json({
             success: true,
-            data: user
+            data: userObj
         });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });

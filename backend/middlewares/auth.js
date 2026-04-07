@@ -17,7 +17,7 @@ exports.protect = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = await User.findById(decoded.id);
+        req.user = await User.findById(decoded.id).populate('role');
         next();
     } catch (err) {
         return res.status(401).json({ success: false, message: 'Không có quyền truy cập route này' });
@@ -26,7 +26,7 @@ exports.protect = async (req, res, next) => {
 
 exports.authorize = (...roles) => {
     return (req, res, next) => {
-        if (!roles.includes(req.user.role)) {
+        if (!req.user.role || !roles.includes(req.user.role.roleName)) {
             return res.status(403).json({
                 success: false,
                 message: 'Tài khoản của bạn không có quyền thực hiện hành động này. Cần quyền: ' + roles.join(',')

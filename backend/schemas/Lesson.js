@@ -22,7 +22,7 @@ const lessonSchema = new mongoose.Schema({
     },
     xpAwarded: {
         type: Number,
-        default: 10
+        default: 50
     },
     duration: {
         type: Number, // Phút
