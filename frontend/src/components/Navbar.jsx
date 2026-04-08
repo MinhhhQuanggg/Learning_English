@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { LogOut, User, BookOpen, LayoutDashboard, ZoomIn, ZoomOut, Maximize, Swords } from 'lucide-react';
+import { LogOut, User, BookOpen, LayoutDashboard, ZoomIn, ZoomOut, Maximize, Swords, Shield } from 'lucide-react';
 import oppIcon from '../assets/opportunity.png';
 
 const Navbar = () => {
@@ -93,6 +93,18 @@ const Navbar = () => {
                     }}>
                         <BookOpen size={18} /> Lộ trình
                     </Link>
+                    {user?.role === 'admin' && (
+                        <Link to="/admin" className="nav-link" style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            textDecoration: 'none',
+                            color: 'var(--primary)', // Đổi màu để dễ nhận dạng menu Admin
+                            fontWeight: '600'
+                        }}>
+                            <Shield size={18} /> Quản trị
+                        </Link>
+                    )}
                     {/* <Link to="/battle" className="nav-link" style={{
                         display: 'flex',
                         alignItems: 'center',

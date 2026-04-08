@@ -4,6 +4,7 @@ import { Zap, Trophy, Flame, Play, Clock, ChevronRight, BookOpen, PlayCircle, Us
 import api from '../api/axios';
 import mascotImg from '../assets/mascot.png';
 import oppIcon from '../assets/opportunity.png';
+import DailyTaskWidget from '../components/DailyTaskWidget';
 
 const DAILY_QUOTES = [
     { en: "Design a life you love, not just a career.", vi: "Hãy thiết kế một cuộc đời bạn yêu thích, chứ không chỉ là một sự nghiệp." },
@@ -599,18 +600,9 @@ const Dashboard = () => {
                         </button>
                     </div>
 
-                    {/* Progress Tracker */}
-                    <div className="glass-card animate-fade-in" style={{
-                        padding: '1.5rem',
-                        borderRadius: '20px',
-                        border: '1px solid rgba(245,158,11,0.15)',
-                        background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
-                        animationDelay: '0.7s',
-                        textAlign: 'center'
-                    }}>
-                        <p style={{ fontSize: '0.9rem', color: '#78350f', fontWeight: '700', margin: 0, lineHeight: '1.7' }}>
-                            📊 Mỗi ngày <span style={{ color: '#f59e0b', fontWeight: '900' }}>10 từ mới</span>. Hôm nay bạn đã đạt được mục tiêu chưa!
-                        </p>
+                    {/* Progress Tracker / Daily Tasks */}
+                    <div style={{ animationDelay: '0.7s', animationFillMode: 'both' }} className="animate-fade-in">
+                        <DailyTaskWidget />
                     </div>
 
                 </div>
