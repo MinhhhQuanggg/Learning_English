@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CheckCircle2, ChevronLeft, Award, ArrowRight, Zap, PlayCircle, Info } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, Award, ArrowRight, Zap, PlayCircle, Info, Heart } from 'lucide-react';
 import api from '../api/axios';
+import CommentSection from '../components/CommentSection';
+import VocabularyCard from '../components/VocabularyCard';
 
 const LessonDetail = () => {
     const { id } = useParams();
@@ -17,6 +19,20 @@ const LessonDetail = () => {
     const [xpAwarded, setXpAwarded] = useState(0);
     const [correctCount, setCorrectCount] = useState(0);
     const [wrongCount, setWrongCount] = useState(0);
+    const [savedVocabs, setSavedVocabs] = useState([]); // List of { _id (savedRecordId), vocabulary (vocabId) }
+
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+
+    const fetchSavedVocabs = async () => {
+        try {
+            const res = await api.get('/saved-vocab/my-words');
+            if (res.data && res.data.success) {
+                setSavedVocabs(res.data.data);
+            }
+        } catch (err) {
+            console.error('Lỗi khi tải sổ tay từ vựng', err);
+        }
+    };
 
     useEffect(() => {
         const fetchLesson = async () => {
@@ -48,6 +64,7 @@ const LessonDetail = () => {
             }
         };
         fetchLesson();
+        fetchSavedVocabs();
     }, [id]);
 
     const handleOptionSelect = (option) => {
@@ -57,7 +74,7 @@ const LessonDetail = () => {
         const currentQ = lesson.questions[currentQuestion];
         let correct = false;
 
-        if (currentQ.type === 'fill_blank' || currentQ.type === 'writing') {
+        if (currentQ.type === 'Điền từ' || currentQ.type === 'Viết luận') {
             correct = option.toLowerCase() === currentQ.correctAnswer.toLowerCase();
         } else {
             correct = option === currentQ.correctAnswer;
@@ -72,6 +89,38 @@ const LessonDetail = () => {
             }, 1500);
         } else {
             setWrongCount(prev => prev + 1);
+        }
+    };
+
+    const handleToggleSavedVocab = async (vocabId) => {
+        const savedRecord = savedVocabs.find(sv => (sv.vocabulary?._id || sv.vocabulary) === vocabId);
+        try {
+            if (savedRecord) {
+                // Xóa khỏi sổ tay
+                await api.delete(`/saved-vocab/${savedRecord._id}`);
+                setSavedVocabs(prev => prev.filter(sv => sv._id !== savedRecord._id));
+            } else {
+                // Thêm vào sổ tay
+                const res = await api.post('/saved-vocab', { vocabularyId: vocabId });
+                if (res.data.success) {
+                    // Update state with the new record (we might need to fetch again to get populated data if needed, but for ID check it's enough)
+                    setSavedVocabs(prev => [...prev, res.data.data]);
+                }
+            }
+        } catch (err) {
+            console.error('Lỗi khi cập nhật sổ tay', err);
+            alert(err.response?.data?.message || 'Có lỗi xảy ra');
+        }
+    };
+
+    const handleToggleStatus = async (id, currentStatus) => {
+        try {
+            const newStatus = currentStatus === 'Đang học' ? 'Đã thuộc' : 'Đang học';
+            await api.put(`/saved-vocab/${id}`, { status: newStatus });
+            setSavedVocabs(prev => prev.map(sv => sv._id === id ? { ...sv, status: newStatus } : sv));
+        } catch (err) {
+            console.error('Error updating status:', err);
+            alert('Lỗi cập nhật trạng thái');
         }
     };
 
@@ -149,15 +198,20 @@ const LessonDetail = () => {
                             {vocabularies.length > 0 && (
                                 <div style={{ marginTop: '3rem' }}>
                                     <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', color: '#1f2937' }}>Từ vựng trong bài</h3>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
-                                        {vocabularies.map(v => (
-                                            <div key={v._id} className="glass-card" style={{ padding: '1rem', borderLeft: '4px solid #3b82f6' }}>
-                                                <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#2563eb' }}>{v.word}</div>
-                                                {v.pronunciation && <div style={{ fontStyle: 'italic', color: '#6b7280', fontSize: '0.9rem', marginBottom: '0.5rem' }}>/{v.pronunciation}/</div>}
-                                                <div style={{ fontWeight: '500', marginTop: '0.25rem' }}>{v.meaning}</div>
-                                                {v.example && <div style={{ marginTop: '0.75rem', fontSize: '0.9rem', color: '#4b5563', backgroundColor: '#f3f4f6', padding: '0.5rem', borderRadius: '4px' }}>VD: {v.example}</div>}
-                                            </div>
-                                        ))}
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                                        {vocabularies.map(v => {
+                                            const savedRecord = savedVocabs.find(sv => (sv.vocabulary?._id || sv.vocabulary) === v._id);
+                                            return (
+                                                <VocabularyCard
+                                                    key={v._id}
+                                                    vocab={v}
+                                                    isSaved={!!savedRecord}
+                                                    savedRecord={savedRecord}
+                                                    onToggleHeart={handleToggleSavedVocab}
+                                                    onToggleStatus={handleToggleStatus}
+                                                />
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
@@ -234,7 +288,7 @@ const LessonDetail = () => {
                             )}
 
                             <div style={{ marginBottom: '3rem' }}>
-                                {(!lesson.questions[currentQuestion].type || lesson.questions[currentQuestion].type === 'multiple_choice' || lesson.questions[currentQuestion].type === 'reading_passage') && (
+                                {(!lesson.questions[currentQuestion].type || lesson.questions[currentQuestion].type === 'Trắc nghiệm' || lesson.questions[currentQuestion].type === 'Đọc hiểu') && (
                                     <div style={{ display: 'grid', gap: '1rem' }}>
                                         {lesson.questions[currentQuestion].options?.map((option, idx) => (
                                             <button
@@ -268,7 +322,7 @@ const LessonDetail = () => {
                                     </div>
                                 )}
 
-                                {lesson.questions[currentQuestion].type === 'true_false' && (
+                                {lesson.questions[currentQuestion].type === 'Đúng/Sai' && (
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                         {['True', 'False'].map((option, idx) => (
                                             <button
@@ -304,7 +358,7 @@ const LessonDetail = () => {
                                     </div>
                                 )}
 
-                                {lesson.questions[currentQuestion].type === 'fill_blank' && (
+                                {lesson.questions[currentQuestion].type === 'Điền từ' && (
                                     <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
                                         <input
                                             type="text"
@@ -342,7 +396,7 @@ const LessonDetail = () => {
                                     </div>
                                 )}
 
-                                {lesson.questions[currentQuestion].type === 'writing' && (
+                                {lesson.questions[currentQuestion].type === 'Viết luận' && (
                                     <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
                                         <textarea
                                             placeholder="Viết câu trả lời chi tiết..."
@@ -376,7 +430,7 @@ const LessonDetail = () => {
                                     </div>
                                 )}
 
-                                {lesson.questions[currentQuestion].type === 'sort_sentence' && (
+                                {lesson.questions[currentQuestion].type === 'Sắp xếp câu' && (
                                     <div>
                                         {/* Hiển thị vùng câu đã ghép */}
                                         <div style={{
@@ -497,6 +551,9 @@ const LessonDetail = () => {
                     )}
                 </div>
             </div>
+
+            {/* Khối Comment hiển thị bên dưới bài học */}
+            <CommentSection lessonId={id} currentUser={currentUser} />
 
             {/* ===== MODAL 11: K\u1ebft qu\u1ea3 b\u00e0i h\u1ecdc ===== */}
             {completed && (

@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Award, Camera, Save, ChevronLeft, CheckCircle2, X, Lock, BookOpen, HelpCircle, Zap, Clock, Tag, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Phone, Award, Camera, Save, ChevronLeft, CheckCircle2, X, Lock, BookOpen, HelpCircle, Zap, Clock, Tag, Eye, EyeOff, BookMarked, Trophy, Settings } from 'lucide-react';
 import api from '../api/axios';
+import SavedVocabSection from '../components/SavedVocabSection';
+import AchievementSection from '../components/AchievementSection';
 
 const AVATAR_PRESETS = [
     'https://api.dicebear.com/7.x/adventurer/svg?seed=Felix',
@@ -38,6 +40,9 @@ const Profile = () => {
     // Modal 10: Cập nhật Avatar
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [selectedPresetAvatar, setSelectedPresetAvatar] = useState('');
+
+    // Tabs for Right Column
+    const [activeTab, setActiveTab] = useState('settings');
 
     // Modal chi tiết bài học đã hoàn thành
     const [showLessonDetailModal, setShowLessonDetailModal] = useState(false);
@@ -262,136 +267,167 @@ const Profile = () => {
                     </div>
                 </div>
 
-                {/* Cột phải: Chỉnh sửa & Lịch sử */}
-                <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                    <div className="glass-card" style={{ padding: '2.5rem', marginBottom: '2rem' }}>
-                        <h3 style={{ fontSize: '1.5rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            Cài đặt tài khoản
-                        </h3>
+                {/* Cột phải: View động dựa trên Tabs */}
+                <div className="animate-fade-in" style={{ animationDelay: '0.2s', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
-                        {message && (
-                            <div style={{
-                                padding: '1rem',
-                                backgroundColor: message.includes('thành công') ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                                color: message.includes('thành công') ? 'var(--success)' : 'var(--error)',
-                                borderRadius: '12px',
-                                marginBottom: '1.5rem',
-                                fontWeight: '600',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem'
-                            }}>
-                                <CheckCircle2 size={20} /> {message}
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                            <div className="input-group" style={{ gridColumn: 'span 2' }}>
-                                <label>Họ và tên</label>
-                                <input
-                                    type="text"
-                                    name="fullName"
-                                    value={formData.fullName}
-                                    onChange={handleChange}
-                                    placeholder="Nhập họ tên đầy đủ"
-                                />
-                            </div>
-                            <div className="input-group">
-                                <label>Số điện thoại</label>
-                                <input
-                                    type="text"
-                                    name="phone"
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                    placeholder="Nhập số điện thoại"
-                                />
-                            </div>
-                            <div className="input-group">
-                                <label>Mục tiêu trình độ</label>
-                                <select
-                                    name="level"
-                                    value={formData.level}
-                                    onChange={handleChange}
-                                >
-                                    <option value="Thấp">Sơ cấp (Thấp)</option>
-                                    <option value="Trung">Trung cấp (Trung)</option>
-                                    <option value="Cao">Cao cấp (Cao)</option>
-                                </select>
-                            </div>
-                            <div style={{ gridColumn: 'span 2', textAlign: 'right', marginTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <button
-                                    type="button"
-                                    onClick={() => { setShowPasswordModal(true); setPwMsg(''); }}
-                                    style={{ padding: '0.75rem 1.5rem', borderRadius: '16px', border: '2px solid #ef4444', backgroundColor: 'white', color: '#ef4444', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                                >
-                                    <Lock size={18} /> Đổi mật khẩu
-                                </button>
-                                <button
-                                    className="btn"
-                                    type="submit"
-                                    disabled={saving}
-                                    style={{ padding: '1rem 3rem', borderRadius: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: 'auto', background: 'linear-gradient(135deg, #ef4444, #f59e0b)', color: 'white', border: 'none', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)' }}
-                                >
-                                    {saving ? 'Đang lưu...' : <><Save size={20} /> Lưu thay đổi</>}
-                                </button>
-                            </div>
-                        </form>
+                    {/* Tabs Navigation */}
+                    <div style={{ display: 'flex', background: 'white', padding: '0.5rem', borderRadius: '16px', gap: '0.5rem', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                        <button
+                            onClick={() => setActiveTab('settings')}
+                            style={{ flex: 1, padding: '0.875rem', borderRadius: '12px', border: 'none', fontWeight: '700', fontSize: '0.95rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'all 0.3s', backgroundColor: activeTab === 'settings' ? 'var(--primary)' : 'transparent', color: activeTab === 'settings' ? 'white' : 'var(--gray-500)', boxShadow: activeTab === 'settings' ? '0 4px 10px rgba(79, 70, 229, 0.3)' : 'none' }}>
+                            <Settings size={18} /> Cài đặt & Lịch sử
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('vocabulary')}
+                            style={{ flex: 1, padding: '0.875rem', borderRadius: '12px', border: 'none', fontWeight: '700', fontSize: '0.95rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'all 0.3s', backgroundColor: activeTab === 'vocabulary' ? '#ef4444' : 'transparent', color: activeTab === 'vocabulary' ? 'white' : 'var(--gray-500)', boxShadow: activeTab === 'vocabulary' ? '0 4px 10px rgba(239, 68, 68, 0.3)' : 'none' }}>
+                            <BookMarked size={18} /> Sổ tay
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('achievements')}
+                            style={{ flex: 1, padding: '0.875rem', borderRadius: '12px', border: 'none', fontWeight: '700', fontSize: '0.95rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'all 0.3s', backgroundColor: activeTab === 'achievements' ? '#f59e0b' : 'transparent', color: activeTab === 'achievements' ? 'white' : 'var(--gray-500)', boxShadow: activeTab === 'achievements' ? '0 4px 10px rgba(245, 158, 11, 0.3)' : 'none' }}>
+                            <Trophy size={18} /> Thành tựu
+                        </button>
                     </div>
 
-                    <div className="glass-card" style={{ padding: '2.5rem' }}>
-                        <h3 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Lịch sử bài học</h3>
-                        {user.completedLessons && user.completedLessons.length > 0 ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                {user.completedLessons.map((item, index) => (
-                                    <div
-                                        key={index}
-                                        onClick={() => handleViewLessonDetail(item)}
-                                        style={{
-                                            padding: '1rem 1.25rem',
-                                            border: '1px solid var(--gray-100)',
-                                            borderRadius: '12px',
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s ease',
-                                            backgroundColor: 'white',
-                                        }}
-                                        onMouseEnter={e => {
-                                            e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.05)';
-                                            e.currentTarget.style.borderColor = '#ef4444';
-                                            e.currentTarget.style.transform = 'translateX(4px)';
-                                        }}
-                                        onMouseLeave={e => {
-                                            e.currentTarget.style.backgroundColor = 'white';
-                                            e.currentTarget.style.borderColor = 'var(--gray-100)';
-                                            e.currentTarget.style.transform = 'translateX(0)';
-                                        }}
-                                    >
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                            <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                                <CheckCircle2 size={18} style={{ color: 'var(--success)' }} />
-                                            </div>
-                                            <div>
-                                                <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{item.lesson?.title || 'Bài học đã học'}</div>
-                                                <div style={{ fontSize: '0.78rem', color: 'var(--gray-500)', marginTop: '2px' }}>Nhấn để xem chi tiết</div>
-                                            </div>
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                            <div style={{ fontSize: '0.82rem', color: 'var(--gray-500)', whiteSpace: 'nowrap' }}>
-                                                {new Date(item.completedAt).toLocaleDateString('vi-VN')}
-                                            </div>
-                                            <div style={{ color: '#ef4444', opacity: 0.5 }}>›</div>
-                                        </div>
+                    {/* Tab 1: Settings & Lịch sử */}
+                    {activeTab === 'settings' && (
+                        <>
+                            <div className="glass-card animate-fade-in" style={{ padding: '2.5rem' }}>
+                                <h3 style={{ fontSize: '1.5rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    Cài đặt tài khoản
+                                </h3>
+
+                                {message && (
+                                    <div style={{
+                                        padding: '1rem',
+                                        backgroundColor: message.includes('thành công') ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                        color: message.includes('thành công') ? 'var(--success)' : 'var(--error)',
+                                        borderRadius: '12px',
+                                        marginBottom: '1.5rem',
+                                        fontWeight: '600',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem'
+                                    }}>
+                                        <CheckCircle2 size={20} /> {message}
                                     </div>
-                                ))}
+                                )}
+
+                                <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                                    <div className="input-group" style={{ gridColumn: 'span 2' }}>
+                                        <label>Họ và tên</label>
+                                        <input
+                                            type="text"
+                                            name="fullName"
+                                            value={formData.fullName}
+                                            onChange={handleChange}
+                                            placeholder="Nhập họ tên đầy đủ"
+                                        />
+                                    </div>
+                                    <div className="input-group">
+                                        <label>Số điện thoại</label>
+                                        <input
+                                            type="text"
+                                            name="phone"
+                                            value={formData.phone}
+                                            onChange={handleChange}
+                                            placeholder="Nhập số điện thoại"
+                                        />
+                                    </div>
+                                    <div className="input-group">
+                                        <label>Mục tiêu trình độ</label>
+                                        <select
+                                            name="level"
+                                            value={formData.level}
+                                            onChange={handleChange}
+                                        >
+                                            <option value="Thấp">Sơ cấp (Thấp)</option>
+                                            <option value="Trung">Trung cấp (Trung)</option>
+                                            <option value="Cao">Cao cấp (Cao)</option>
+                                        </select>
+                                    </div>
+                                    <div style={{ gridColumn: 'span 2', textAlign: 'right', marginTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setShowPasswordModal(true); setPwMsg(''); }}
+                                            style={{ padding: '0.75rem 1.5rem', borderRadius: '16px', border: '2px solid #ef4444', backgroundColor: 'white', color: '#ef4444', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                        >
+                                            <Lock size={18} /> Đổi mật khẩu
+                                        </button>
+                                        <button
+                                            className="btn"
+                                            type="submit"
+                                            disabled={saving}
+                                            style={{ padding: '1rem 3rem', borderRadius: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: 'auto', background: 'linear-gradient(135deg, #ef4444, #f59e0b)', color: 'white', border: 'none', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)' }}
+                                        >
+                                            {saving ? 'Đang lưu...' : <><Save size={20} /> Lưu thay đổi</>}
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
-                        ) : (
-                            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--gray-500)', backgroundColor: 'var(--gray-100)', borderRadius: '16px' }}>
-                                Bạn chưa hoàn thành bài học nào. Hãy bắt đầu ngay nhé!
+
+                            <div className="glass-card" style={{ padding: '2.5rem' }}>
+                                <h3 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Lịch sử bài học</h3>
+                                {user.completedLessons && user.completedLessons.length > 0 ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                        {user.completedLessons.map((item, index) => (
+                                            <div
+                                                key={index}
+                                                onClick={() => handleViewLessonDetail(item)}
+                                                style={{
+                                                    padding: '1rem 1.25rem',
+                                                    border: '1px solid var(--gray-100)',
+                                                    borderRadius: '12px',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s ease',
+                                                    backgroundColor: 'white',
+                                                }}
+                                                onMouseEnter={e => {
+                                                    e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.05)';
+                                                    e.currentTarget.style.borderColor = '#ef4444';
+                                                    e.currentTarget.style.transform = 'translateX(4px)';
+                                                }}
+                                                onMouseLeave={e => {
+                                                    e.currentTarget.style.backgroundColor = 'white';
+                                                    e.currentTarget.style.borderColor = 'var(--gray-100)';
+                                                    e.currentTarget.style.transform = 'translateX(0)';
+                                                }}
+                                            >
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                                        <CheckCircle2 size={18} style={{ color: 'var(--success)' }} />
+                                                    </div>
+                                                    <div>
+                                                        <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{item.lesson?.title || 'Bài học đã học'}</div>
+                                                        <div style={{ fontSize: '0.78rem', color: 'var(--gray-500)', marginTop: '2px' }}>Nhấn để xem chi tiết</div>
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                    <div style={{ fontSize: '0.82rem', color: 'var(--gray-500)', whiteSpace: 'nowrap' }}>
+                                                        {new Date(item.completedAt).toLocaleDateString('vi-VN')}
+                                                    </div>
+                                                    <div style={{ color: '#ef4444', opacity: 0.5 }}>›</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--gray-500)', backgroundColor: 'var(--gray-100)', borderRadius: '16px' }}>
+                                        Bạn chưa hoàn thành bài học nào. Hãy bắt đầu ngay nhé!
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
+                        </>
+                    )}
+
+                    {/* Tab 2: Sổ tay tự vựng */}
+                    {activeTab === 'vocabulary' && <SavedVocabSection />}
+
+                    {/* Tab 3: Thành tựu cá nhân */}
+                    {activeTab === 'achievements' && <AchievementSection />}
                 </div>
             </div>
 

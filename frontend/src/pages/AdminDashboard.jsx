@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
-import { BookOpen, Users, Folder, Trash2, Edit, X, ArrowLeft, MessageSquare, Type } from 'lucide-react';
+import { BookOpen, Users, Folder, Trash2, Edit, X, ArrowLeft, MessageSquare, Type, Star } from 'lucide-react';
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('lessons'); // lessons, categories, users, questions-view
@@ -19,6 +19,9 @@ const AdminDashboard = () => {
     // Modal 7: User Detail
     const [showUserDetailModal, setShowUserDetailModal] = useState(false);
     const [selectedUserDetail, setSelectedUserDetail] = useState(null);
+    // Modal 7.5: Feedback Detail
+    const [showFeedbackDetailModal, setShowFeedbackDetailModal] = useState(false);
+    const [selectedFeedbackDetail, setSelectedFeedbackDetail] = useState(null);
     // Modal 8: Confirm Delete
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState(null); // { id, name, isQuestion }
@@ -37,9 +40,19 @@ const AdminDashboard = () => {
             if (activeTab === 'categories') endpoint = '/categories';
             if (activeTab === 'users') endpoint = '/auth/users';
             if (activeTab === 'vocabularies') endpoint = '/vocabulary';
+            if (activeTab === 'feedbacks') endpoint = '/feedback';
+            if (activeTab === 'achievements') endpoint = '/gamification/achievements';
 
             const res = await api.get(endpoint);
-            setData(res.data.data || res.data);
+            let resultData = res.data.data || res.data;
+
+            // Sort lessons by Level (Thấp -> Trung -> Cao)
+            if (activeTab === 'lessons' && Array.isArray(resultData)) {
+                const levelOrder = { 'Thấp': 0, 'Trung': 1, 'Cao': 2 };
+                resultData.sort((a, b) => (levelOrder[a.level] || 0) - (levelOrder[b.level] || 0));
+            }
+
+            setData(resultData);
         } catch (err) {
             console.error('Lỗi khi tải dữ liệu', err);
         }
@@ -108,6 +121,8 @@ const AdminDashboard = () => {
                 if (activeTab === 'categories') endpoint = `/categories/${id}`;
                 if (activeTab === 'users') endpoint = `/auth/users/${id}`;
                 if (activeTab === 'vocabularies') endpoint = `/vocabulary/${id}`;
+                if (activeTab === 'feedbacks') endpoint = `/feedback/${id}`;
+                if (activeTab === 'achievements') endpoint = `/gamification/achievements/${id}`;
                 await api.delete(endpoint);
                 fetchData();
             }
@@ -139,7 +154,7 @@ const AdminDashboard = () => {
                 setFormData({ name: 'Reading', description: '', order: 1 });
             } else if (activeTab === 'questions-view') {
                 setFormData({
-                    type: 'multiple_choice',
+                    type: 'Trắc nghiệm',
                     level: 'Thấp',
                     question: '',
                     options: '',
@@ -177,7 +192,7 @@ const AdminDashboard = () => {
             // Special handling for Questions
             if (activeTab === 'questions-view' || modalMode.includes('question')) {
                 // Convert options string back to array if applicable
-                if (payload.type === 'multiple_choice' || payload.type === 'sort_sentence' || payload.type === 'true_false') {
+                if (payload.type === 'Trắc nghiệm' || payload.type === 'Sắp xếp câu' || payload.type === 'Đúng/Sai') {
                     if (typeof payload.options === 'string') {
                         payload.options = payload.options.split(',').map(s => s.trim()).filter(s => s !== '');
                     }
@@ -206,12 +221,22 @@ const AdminDashboard = () => {
                 } else if (activeTab === 'vocabularies') {
                     endpoint = modalMode === 'create' ? '/vocabulary' : `/vocabulary/${formData._id}`;
                     if (!payload.questionId) delete payload.questionId;
+                } else if (activeTab === 'achievements') {
+                    endpoint = modalMode === 'create' ? '/achievements' : `/achievements/${formData._id}`;
                 }
 
                 if (modalMode === 'create') {
-                    await api.post(endpoint, payload);
+                    if (activeTab === 'achievements') {
+                        await api.post('/gamification/achievements', payload);
+                    } else {
+                        await api.post(endpoint, payload);
+                    }
                 } else {
-                    await api.put(endpoint, payload);
+                    if (activeTab === 'achievements') {
+                        await api.put(`/gamification/achievements/${formData._id}`, payload);
+                    } else {
+                        await api.put(endpoint, payload);
+                    }
                 }
                 fetchData();
             }
@@ -256,6 +281,16 @@ const AdminDashboard = () => {
                         style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', borderRadius: '8px', cursor: 'pointer', border: 'none', background: activeTab === 'vocabularies' ? '#eff6ff' : 'transparent', color: activeTab === 'vocabularies' ? '#2563eb' : '#4b5563', fontWeight: activeTab === 'vocabularies' ? '600' : '500', width: '100%', textAlign: 'left', transition: 'all 0.2s' }}>
                         <Type size={20} /> Từ vựng
                     </button>
+                    <button
+                        onClick={() => { setActiveTab('feedbacks'); setSelectedLesson(null); }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', borderRadius: '8px', cursor: 'pointer', border: 'none', background: activeTab === 'feedbacks' ? '#eff6ff' : 'transparent', color: activeTab === 'feedbacks' ? '#2563eb' : '#4b5563', fontWeight: activeTab === 'feedbacks' ? '600' : '500', width: '100%', textAlign: 'left', transition: 'all 0.2s' }}>
+                        <MessageSquare size={20} /> Góp ý
+                    </button>
+                    <button
+                        onClick={() => { setActiveTab('achievements'); setSelectedLesson(null); }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.85rem 1rem', borderRadius: '8px', cursor: 'pointer', border: 'none', background: activeTab === 'achievements' ? '#eff6ff' : 'transparent', color: activeTab === 'achievements' ? '#2563eb' : '#4b5563', fontWeight: activeTab === 'achievements' ? '600' : '500', width: '100%', textAlign: 'left', transition: 'all 0.2s' }}>
+                        <Star size={20} /> Thành tích
+                    </button>
                 </nav>
             </div>
 
@@ -273,13 +308,14 @@ const AdminDashboard = () => {
                             {activeTab === 'categories' && 'Quản lý Danh mục'}
                             {activeTab === 'users' && 'Quản lý Người dùng'}
                             {activeTab === 'vocabularies' && 'Quản lý Từ vựng'}
+                            {activeTab === 'feedbacks' && 'Quản lý Góp ý'}
                             {activeTab === 'questions-view' && `Câu hỏi trong: ${selectedLesson?.title}`}
                         </h1>
                         <p style={{ color: '#6b7280', marginTop: '0.25rem' }}>
                             {activeTab === 'questions-view' ? `Tổng cộng có ${questionsData.length} câu hỏi` : `Tổng cộng có ${data.length} bản ghi trong dữ liệu`}
                         </p>
                     </div>
-                    {activeTab !== 'users' && (
+                    {activeTab !== 'users' && activeTab !== 'feedbacks' && (
                         <button onClick={() => handleOpenModal(activeTab === 'questions-view' ? 'create-question' : 'create')} style={{ backgroundColor: '#10b981', color: 'white', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', boxShadow: '0 4px 6px rgba(16, 185, 129, 0.2)' }}>
                             + Thêm mới
                         </button>
@@ -303,7 +339,9 @@ const AdminDashboard = () => {
                                 {questionsData && questionsData.length > 0 ? questionsData.map((item) => (
                                     <tr key={item._id} style={{ borderBottom: '1px solid #e5e7eb' }}>
                                         <td style={{ padding: '1rem' }}>
-                                            <span style={{ backgroundColor: '#f3f4f6', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '500' }}>{item.type}</span>
+                                            <span style={{ backgroundColor: '#f3f4f6', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '500' }}>
+                                                {item.type}
+                                            </span>
                                         </td>
                                         <td style={{ padding: '1rem', fontWeight: '500' }}>{item.question}</td>
                                         <td style={{ padding: '1rem', color: '#10b981', fontWeight: '600' }}>{item.correctAnswer}</td>
@@ -355,6 +393,20 @@ const AdminDashboard = () => {
                                             <th style={{ padding: '1.25rem 1rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>Từ Vựng</th>
                                             <th style={{ padding: '1.25rem 1rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>Nghĩa</th>
                                             <th style={{ padding: '1.25rem 1rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>Thuộc Bài học</th>
+                                        </>
+                                    )}
+                                    {activeTab === 'feedbacks' && (
+                                        <>
+                                            <th style={{ padding: '1.25rem 1rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>Người gửi</th>
+                                            <th style={{ padding: '1.25rem 1rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>Loại & Tiêu đề</th>
+                                            <th style={{ padding: '1.25rem 1rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>Trạng thái</th>
+                                        </>
+                                    )}
+                                    {activeTab === 'achievements' && (
+                                        <>
+                                            <th style={{ padding: '1.25rem 1rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>Icon</th>
+                                            <th style={{ padding: '1.25rem 1rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>Tên thành tích</th>
+                                            <th style={{ padding: '1.25rem 1rem', textAlign: 'left', fontWeight: '600', color: '#6b7280' }}>Mô tả</th>
                                         </>
                                     )}
                                     <th style={{ padding: '1.25rem 1rem', textAlign: 'right', fontWeight: '600', color: '#6b7280' }}>Hành động</th>
@@ -422,6 +474,54 @@ const AdminDashboard = () => {
                                                 <td style={{ padding: '1rem', color: '#6b7280' }}>{item.lessonId?.title || 'Trống'}</td>
                                             </>
                                         )}
+                                        {activeTab === 'feedbacks' && (
+                                            <>
+                                                <td style={{ padding: '1rem' }}>
+                                                    <div style={{ fontWeight: '500' }}>{item.user?.fullName}</div>
+                                                    <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{item.user?.email}</div>
+                                                </td>
+                                                <td style={{ padding: '1rem' }}>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 'bold' }}>{item.type}</div>
+                                                    <div style={{ fontWeight: '500' }}>{item.title}</div>
+                                                </td>
+                                                <td style={{ padding: '1rem' }}>
+                                                    <select
+                                                        value={item.status}
+                                                        onChange={async (e) => {
+                                                            try {
+                                                                await api.put(`/feedback/${item._id}/status`, { status: e.target.value });
+                                                                fetchData();
+                                                            } catch (err) {
+                                                                alert('Lỗi cập nhật trạng thái');
+                                                            }
+                                                        }}
+                                                        style={{
+                                                            padding: '0.25rem 0.5rem',
+                                                            borderRadius: '4px',
+                                                            fontSize: '0.85rem',
+                                                            border: '1px solid #d1d5db',
+                                                            backgroundColor: item.status === 'Đã giải quyết' ? '#d1fae5' : (item.status === 'Đang xử lý' ? '#fef3c7' : '#f3f4f6'),
+                                                            color: item.status === 'Đã giải quyết' ? '#059669' : (item.status === 'Đang xử lý' ? '#d97706' : '#4b5563')
+                                                        }}
+                                                    >
+                                                        <option value="Đang chờ">Đang chờ</option>
+                                                        <option value="Đang xử lý">Đang xử lý</option>
+                                                        <option value="Đã giải quyết">Đã giải quyết</option>
+                                                    </select>
+                                                </td>
+                                            </>
+                                        )}
+                                        {activeTab === 'achievements' && (
+                                            <>
+                                                <td style={{ padding: '1rem' }}>
+                                                    <div style={{ width: '40px', height: '40px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+                                                        <img src={item.icon} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                    </div>
+                                                </td>
+                                                <td style={{ padding: '1rem', fontWeight: '600', color: '#111827' }}>{item.name}</td>
+                                                <td style={{ padding: '1rem', color: '#6b7280' }}>{item.description}</td>
+                                            </>
+                                        )}
                                         <td style={{ padding: '1rem', textAlign: 'right' }}>
                                             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                                                 {activeTab === 'lessons' && (
@@ -439,9 +539,16 @@ const AdminDashboard = () => {
                                                         👁️
                                                     </button>
                                                 )}
-                                                <button onClick={() => handleOpenModal('edit', item)} style={{ border: 'none', background: '#eff6ff', color: '#3b82f6', padding: '0.4rem', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s' }}>
-                                                    <Edit size={18} />
-                                                </button>
+                                                {activeTab === 'feedbacks' && (
+                                                    <button onClick={() => { setSelectedFeedbackDetail(item); setShowFeedbackDetailModal(true); }} style={{ border: 'none', background: '#f0fdf4', color: '#16a34a', padding: '0.4rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Xem chi tiết">
+                                                        👁️
+                                                    </button>
+                                                )}
+                                                {activeTab !== 'feedbacks' && (
+                                                    <button onClick={() => handleOpenModal('edit', item)} style={{ border: 'none', background: '#eff6ff', color: '#3b82f6', padding: '0.4rem', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                                                        <Edit size={18} />
+                                                    </button>
+                                                )}
                                                 <button onClick={() => handleDelete(item._id, false, item.title || item.name || item.fullName)} style={{ border: 'none', background: '#fef2f2', color: '#ef4444', padding: '0.4rem', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s' }}>
                                                     <Trash2 size={18} />
                                                 </button>
@@ -478,11 +585,7 @@ const AdminDashboard = () => {
                                 <>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                         <label style={{ fontWeight: '600', fontSize: '0.9rem' }}>Tên danh mục</label>
-                                        <select name="name" value={formData.name || ''} onChange={handleInputChange} required style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }}>
-                                            <option value="Reading">Reading</option>
-                                            <option value="Listening">Listening</option>
-                                            <option value="Writing">Writing</option>
-                                        </select>
+                                        <input type="text" name="name" value={formData.name || ''} onChange={handleInputChange} required placeholder="Nhập tên danh mục (VD: Grammar, Vocabulary,...)" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }} />
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                         <label style={{ fontWeight: '600', fontSize: '0.9rem' }}>Mô tả</label>
@@ -491,6 +594,22 @@ const AdminDashboard = () => {
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                         <label style={{ fontWeight: '600', fontSize: '0.9rem' }}>Thứ tự hiển thị (Order)</label>
                                         <input type="number" name="order" value={formData.order || 1} onChange={handleInputChange} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }} />
+                                    </div>
+                                </>
+                            )}
+                            {activeTab === 'achievements' && (
+                                <>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        <label style={{ fontWeight: '600', fontSize: '0.9rem' }}>Tên thành tích</label>
+                                        <input type="text" name="name" value={formData.name || ''} onChange={handleInputChange} required placeholder="Tên thành tích" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }} />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        <label style={{ fontWeight: '600', fontSize: '0.9rem' }}>Mô tả</label>
+                                        <input type="text" name="description" value={formData.description || ''} onChange={handleInputChange} placeholder="Mô tả thành tích" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }} />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        <label style={{ fontWeight: '600', fontSize: '0.9rem' }}>Icon URL</label>
+                                        <input type="text" name="icon" value={formData.icon || ''} onChange={handleInputChange} placeholder="URL của icon" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }} />
                                     </div>
                                 </>
                             )}
@@ -519,6 +638,10 @@ const AdminDashboard = () => {
                                         </select>
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        <label style={{ fontWeight: '600', fontSize: '0.9rem' }}>Mô tả bài học</label>
+                                        <textarea name="description" value={formData.description || ''} onChange={handleInputChange} required rows={3} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db', fontFamily: 'inherit' }} />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                         <label style={{ fontWeight: '600', fontSize: '0.9rem' }}>Điểm XP phần thưởng</label>
                                         <input type="number" name="xpAwarded" value={formData.xpAwarded || 10} onChange={handleInputChange} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }} />
                                     </div>
@@ -545,13 +668,13 @@ const AdminDashboard = () => {
                                 <>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                         <label style={{ fontWeight: '600', fontSize: '0.9rem' }}>Loại câu hỏi</label>
-                                        <select name="type" value={formData.type || 'multiple_choice'} onChange={handleInputChange} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }}>
-                                            <option value="multiple_choice">Trắc nghiệm</option>
-                                            <option value="fill_blank">Điền từ</option>
-                                            <option value="sort_sentence">Sắp xếp câu</option>
-                                            <option value="writing">Tự luận / Viết</option>
-                                            <option value="reading_passage">Đọc hiểu</option>
-                                            <option value="true_false">Đúng / Sai</option>
+                                        <select name="type" value={formData.type || 'Trắc nghiệm'} onChange={handleInputChange} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db' }}>
+                                            <option value="Trắc nghiệm">Trắc nghiệm</option>
+                                            <option value="Điền từ">Điền từ</option>
+                                            <option value="Sắp xếp câu">Sắp xếp câu</option>
+                                            <option value="Viết luận">Viết luận</option>
+                                            <option value="Đọc hiểu">Đọc hiểu</option>
+                                            <option value="Đúng/Sai">Đúng / Sai</option>
                                         </select>
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -712,6 +835,42 @@ const AdminDashboard = () => {
                         </div>
                         <div style={{ textAlign: 'right', marginTop: '1.5rem' }}>
                             <button onClick={() => setShowUserDetailModal(false)} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: 'white', fontWeight: '600', cursor: 'pointer' }}>Đóng</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* ===== MODAL 7.5: Xem chi tiết Góp ý ===== */}
+            {showFeedbackDetailModal && selectedFeedbackDetail && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 60 }}>
+                    <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '2rem', width: '600px', maxWidth: '95%', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 25px 50px rgba(0,0,0,0.15)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                            <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', margin: 0 }}>💬 Chi tiết Góp ý</h2>
+                            <button onClick={() => setShowFeedbackDetailModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}><X size={24} /></button>
+                        </div>
+                        <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px', marginBottom: '1rem' }}>
+                            <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', fontWeight: '600' }}>Người gửi</div>
+                            <div style={{ fontWeight: 'bold' }}>{selectedFeedbackDetail.user?.fullName} ({selectedFeedbackDetail.user?.email})</div>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                            <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
+                                <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', fontWeight: '600' }}>Loại góp ý</div>
+                                <div style={{ fontWeight: '600', color: '#2563eb' }}>{selectedFeedbackDetail.type}</div>
+                            </div>
+                            <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
+                                <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', fontWeight: '600' }}>Trạng thái</div>
+                                <div style={{ fontWeight: '600' }}>{selectedFeedbackDetail.status}</div>
+                            </div>
+                        </div>
+                        <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px', marginBottom: '1rem' }}>
+                            <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', fontWeight: '600' }}>Tiêu đề</div>
+                            <div style={{ fontWeight: 'bold' }}>{selectedFeedbackDetail.title}</div>
+                        </div>
+                        <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
+                            <div style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', fontWeight: '600', marginBottom: '0.5rem' }}>Nội dung chi tiết</div>
+                            <div style={{ color: '#374151', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{selectedFeedbackDetail.content}</div>
+                        </div>
+                        <div style={{ textAlign: 'right', marginTop: '1.5rem' }}>
+                            <button onClick={() => setShowFeedbackDetailModal(false)} style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: 'white', fontWeight: '600', cursor: 'pointer' }}>Đóng</button>
                         </div>
                     </div>
                 </div>
