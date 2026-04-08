@@ -12,11 +12,13 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import AdminDashboard from './pages/AdminDashboard';
 import Battle from './pages/Battle';
+import FeedbackWidget from './components/FeedbackWidget';
 
 function App() {
   return (
     <Router>
       <div className="App" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <FeedbackWidget />
         <div style={{ flex: 1 }}>
           <Routes>
             {/* Các route công khai */}
