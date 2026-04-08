@@ -98,3 +98,38 @@ exports.createAchievement = async (req, res) => {
         res.status(400).json({ success: false, message: error.message });
     }
 };
+
+// @desc    Cập nhật thành tựu (Admin)
+// @route   PUT /api/gamification/achievements/:id
+exports.updateAchievement = async (req, res) => {
+    try {
+        const achievement = await Achievement.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+            runValidators: true
+        });
+
+        if (!achievement) {
+            return res.status(404).json({ success: false, message: 'Thành tựu không tồn tại' });
+        }
+
+        res.status(200).json({ success: true, data: achievement });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Xóa thành tựu (Admin)
+// @route   DELETE /api/gamification/achievements/:id
+exports.deleteAchievement = async (req, res) => {
+    try {
+        const achievement = await Achievement.findByIdAndDelete(req.params.id);
+
+        if (!achievement) {
+            return res.status(404).json({ success: false, message: 'Thành tựu không tồn tại' });
+        }
+
+        res.status(200).json({ success: true, message: 'Xóa thành tựu thành công' });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
