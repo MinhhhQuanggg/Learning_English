@@ -1,10 +1,3 @@
-# LearningEnglish
-# Đồ án cuối kì môn: Ngôn ngữ phát triển ứng dụng mới 
-# Thái Minh Quang - 2280602561
-# Thái Anh Nhật - 2280602216
-# Nguyễn Trường Sơn - 2280602760
-# Nguyễn Minh Vũ - 2280603745
-# Huỳnh Lê Hồng Xuyến - 2280603805
 # - Tải Mongodb Compass về kết nối database
 # BƯỚC 1:
 # 1. Tạo file môi trường: Tại thư mục backend, tạo một file mới tên là .env.
